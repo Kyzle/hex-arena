@@ -33,7 +33,7 @@ html,body{margin:0;padding:0;background:#0d1219;min-height:100%;display:flex;ali
 @keyframes sweepFade{0%{opacity:0}30%{opacity:.95}100%{opacity:0}}
 @keyframes whiteHit{0%{opacity:0;transform:scale(.7)}25%{opacity:1;transform:scale(1.15)}100%{opacity:0;transform:scale(1.4)}}
 @keyframes shakeIt{0%,100%{transform:translate(0,0)}20%{transform:translate(-3px,2px)}40%{transform:translate(3px,-2px)}60%{transform:translate(-2px,-2px)}80%{transform:translate(2px,2px)}}
-#scrWrap.shake{animation:shakeIt .28s ease-in-out}
+#scr.shake{animation:shakeIt .28s ease-in-out}
 #vig{position:absolute;inset:0;pointer-events:none;opacity:0;background:radial-gradient(ellipse at center,rgba(0,0,0,0) 45%,rgba(226,75,74,.55) 100%);}
 @keyframes vigPulse{0%{opacity:0}25%{opacity:1}100%{opacity:0}}
 #flashOverlay{position:absolute;inset:0;pointer-events:none;background:#fff;opacity:0;}
@@ -425,7 +425,7 @@ for(let i=0;i<8;i++){
 const ghost=document.createElementNS(NS,'g');ghost.style.opacity='0';ghost.style.pointerEvents='none';svg.appendChild(ghost);
 const ring=document.createElementNS(NS,'circle');ring.setAttribute('fill','none');ring.setAttribute('stroke','#fff');ring.setAttribute('stroke-width','2');ring.setAttribute('stroke-dasharray','5 4');ring.style.display='none';svg.appendChild(ring);
 const shR=document.createElementNS(NS,'circle');shR.setAttribute('fill','none');shR.setAttribute('stroke','#5DCAA5');shR.setAttribute('stroke-width','3');shR.style.display='none';svg.appendChild(shR);
-function paint(u){const c=TEAM_COL[u.team],r=Math.max(9,S*0.55);
+function paint(u){const c=(u.kit&&u.kit.col)?u.kit.col:TEAM_COL[u.team],r=Math.max(9,S*0.55);
  const art=u.kit&&u.kit.art?ART[u.kit.art]:null;
  if(art){
   const h=art.h*(S/20),w=h*0.62;
@@ -578,7 +578,7 @@ function impactAt(t,col){
   g.setAttribute('transform','translate('+t.x+','+t.y+') scale('+sc.toFixed(3)+')');
   g.style.opacity=String(k<0.25?k*4:1-(k-0.25)/0.75);
  });}
-function shake(){const el=document.getElementById('scrWrap');if(!el)return;el.classList.remove('shake');void el.offsetWidth;el.classList.add('shake');
+function shake(){const el=document.getElementById('scr');if(!el)return;el.classList.remove('shake');void el.offsetWidth;el.classList.add('shake');
  setTimeout(()=>el.classList.remove('shake'),300);}
 function vignette(){const v=document.getElementById('vig');v.style.animation='none';void v.offsetWidth;v.style.animation='vigPulse .55s ease-out forwards';}
 function fullFlash(){const f=document.getElementById('flashOverlay');f.style.animation='none';void f.offsetWidth;f.style.animation='fullFlash .35s ease-out forwards';}
@@ -1204,13 +1204,58 @@ function goLabel(){const g=document.getElementById('go');
 document.getElementById('swT').addEventListener('click',()=>{if(phase!=='react')return;
  const list=rMode==='shield'?controlled():rMode==='counter'?foesOf(P):[];if(!list.length)return;
  rTarget=list[(list.indexOf(rTarget)+1)%list.length];render();});
+// ---------- dungeon monsters ----------
+// Enemies are monsters, never playable roster characters.
+// Each dungeon theme has its own bestiary: commons, elites and bosses.
+const BESTIARY={
+ plains:{
+  name:'The Plains',
+  commons:[
+   {id:'razorbeak', nm:'Razor Beak',  hp:26,dmg:9, walk:3,dash:5,range:2,backX:1.4,
+    shapes:['attack'],          col:['#8a5a2b','#e0b070'], tr:'Fast diving striker'},
+   {id:'shieldsheep',nm:'Shield Sheep',hp:50,dmg:5,walk:2,dash:3,range:1,rc:4,
+    shapes:['attack','arc'],    col:['#7d7f88','#dcdfe6'], tr:'Blocks cheaply'},
+   {id:'crowdog',   nm:'Crow Dog',    hp:30,dmg:7, walk:3,dash:4,range:1,backX:1.6,
+    shapes:['attack','cone'],   col:['#3d3a4a','#8d86a8'], tr:'Hunts in packs, flanks'},
+   {id:'wrestlerboa',nm:'Wrestler Boa',hp:38,dmg:7,walk:2,dash:3,range:3,pull:1,
+    shapes:['attack','pull'],   col:['#3f6b3a','#8fd18a'], tr:'Drags prey closer'},
+   {id:'sowbug',    nm:'Sow Bug',     hp:42,dmg:6, walk:2,dash:3,range:1,push:1,
+    shapes:['attack','cone'],   col:['#5a4a3a','#a98f6f'], tr:'Armoured, shoves'}
+  ],
+  elites:[
+   {id:'elderboa',  nm:'Elder Boa',   hp:54,dmg:9, walk:2,dash:4,range:4,pull:1,
+    shapes:['attack','pull'],   col:['#2f5d3a','#7fd18a'], tr:'Reaches across the field'},
+   {id:'packalpha', nm:'Pack Alpha',  hp:46,dmg:9, walk:3,dash:5,range:2,backX:1.7,
+    shapes:['attack','cone'],   col:['#2b2838','#a08fd0'], tr:'Devastating from behind'}
+  ],
+  bosses:[
+   {id:'hivequeen', nm:'Great Hive Queen',hp:78,dmg:8,walk:2,dash:3,range:3,pull:1,
+    shapes:['attack','vortex','arc'], col:['#a8801f','#f2d271'], tr:'Hauls the swarm inward'},
+   {id:'stormbull', nm:'Storm Bull',  hp:88,dmg:11,walk:3,dash:5,range:2,push:1,
+    shapes:['attack','cone'],   col:['#2c4a7a','#7fb4f0'], tr:'Charges and scatters'}
+  ]
+ }
+};
+function bestiaryFor(dungeonId){
+ const d=DUNGEONS[dungeonId];
+ return BESTIARY[(d&&d.theme)||'plains']||BESTIARY.plains;}
+// pick n distinct commons (repeats allowed only once the pool is exhausted)
+function rollFoes(theme,n,tier){
+ const b=BESTIARY[theme]||BESTIARY.plains;
+ const pool=(tier==='boss'?b.bosses:tier==='elite'?b.elites:b.commons).slice();
+ const out=[];
+ for(let i=0;i<n;i++){
+  if(!pool.length)pool.push.apply(pool,(tier==='boss'?b.bosses:tier==='elite'?b.elites:b.commons));
+  out.push(pool.splice(Math.floor(Math.random()*pool.length),1)[0]);}
+ return out;}
+
 // ---------- dungeon: v1 three-node expedition ----------
 // ENTRY -> COMBAT -> EXIT. Entry starts cleared; Combat is immediately available;
 // Exit unlocks on victory. Tapping Exit extracts and banks the carried loot.
 const DUNGEONS={
- home_camp:{id:'home_camp',name:'Home Camp',sub:'Training Expedition',
+ home_camp:{id:'home_camp',name:'The Plains',sub:'Training Grounds',theme:'plains',
   gold:[40,70],xp:60,sparkChance:0,foes:2},
- amethyst:{id:'amethyst',name:'Amethyst Hollow',sub:'Crystal Depths',
+ amethyst:{id:'amethyst',name:'The Deep Plains',sub:'Beast Country',theme:'plains',
   gold:[70,120],xp:110,sparkChance:0.35,foes:3}
 };
 function curDungeon(){return DUNGEONS[SAVE.get().selectedDungeonId]||DUNGEONS.home_camp;}
@@ -1298,16 +1343,20 @@ function enterNode(id){
  layoutRoom();startTurns();}
 
 // ---------- room setup ----------
-function layoutRoom(){
+function layoutRoom(tier){
  const d=curDungeon();
- walls=[];zoneTiles=[];cacheTiles=[];roomGoal='Clear the room';
+ walls=[];zoneTiles=[];cacheTiles=[];
+ const n=(tier==='boss')?1:d.foes;
+ const foes=rollFoes(d.theme||'plains',n,tier||'common');
+ roomGoal=(tier==='boss')?('BOSS: '+foes[0].nm):'Clear the room';
  const sp=SPAWN[2];
  myUnits.forEach((u,i)=>{u.pos={q:sp[0][i][0],r:sp[0][i][1]};u.facing=sp[0][i][2];});
  UNITS.filter(u=>u.team===1).forEach((e,i)=>{
-  const on=i<d.foes;e.dead=!on;e.el.style.opacity=on?'1':'0';
+  const on=i<foes.length;e.dead=!on;e.el.style.opacity=on?'1':'0';
   if(!on)return;
   e.pos={q:sp[1][i][0],r:sp[1][i][1]};e.facing=sp[1][i][2];
-  e.kit=Object.assign({},e.baseKit);
+  e.kit=Object.assign({},foes[i]);          // monster kit, not a roster character
+  e.baseKit=e.kit;
   e.hp=e.kit.hp;e.en=EN;paint(e);});
 }
 
@@ -1454,10 +1503,9 @@ function startMenu(){ROUTER.closeModal();showHome();}
 function playExpedition(){
  ensureSquad();
  gameMode='dungeon';cfg=MODES.dungeon;buildBoard(cfg.R,cfg.S);
- picks=[squadKits(),[],[],[]];
- // fill the enemy team from the rest of the roster
- const mine=picks[0].map(k=>k.id);
- picks[1]=ROSTER.filter(k=>mine.indexOf(k.id)<0).slice(0,3);
+ // the squad chosen on the Squad screen IS the squad — no draft, no re-pick
+ const d=DUNGEONS[SAVE.get().selectedDungeonId]||DUNGEONS.home_camp;
+ picks=[squadKits(),rollFoes(d.theme||'plains',3,'common'),[],[]];
  newExpedition();
  initBattle();}
 (function(){var g=document.getElementById('dGrid');var sy=0,st=0,drag=false;
