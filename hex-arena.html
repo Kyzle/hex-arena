@@ -148,7 +148,7 @@ html,body{margin:0;padding:0;background:#0d1219;min-height:100%;display:flex;ali
         <button id="homePlay" style="width:100%;background:linear-gradient(#7ee2bd,#43b48f);color:#04342C;border:1px solid #9ff0d4;border-radius:14px;font-size:20px;font-weight:800;padding:15px;cursor:pointer;box-shadow:0 3px 12px rgba(0,0,0,.55);letter-spacing:1px;">PLAY</button>
         <div style="display:flex;gap:8px;margin-top:8px;">
           <button id="homeSquadBtn" style="flex:1;background:rgba(30,38,52,.9);color:#cfd6e0;border:1px solid #445167;border-radius:11px;font-size:13px;font-weight:600;padding:10px;cursor:pointer;">SQUAD</button>
-          <button id="homeDunBtn" style="flex:1;background:rgba(30,38,52,.9);color:#cfd6e0;border:1px solid #445167;border-radius:11px;font-size:13px;font-weight:600;padding:10px;cursor:pointer;">DUNGEON</button>
+          <button id="homeDunBtn" style="flex:1;background:rgba(30,38,52,.9);color:#cfd6e0;border:1px solid #445167;border-radius:11px;font-size:13px;font-weight:600;padding:10px;cursor:pointer;">ARENAS</button>
         </div>
         <div id="homeInfo" style="text-align:center;font-size:10px;color:#8d99a8;margin-top:8px;cursor:pointer;">MORE INFO</div>
       </div>
@@ -179,6 +179,7 @@ html,body{margin:0;padding:0;background:#0d1219;min-height:100%;display:flex;ali
       <button id="mDun" style="width:210px;background:#5DCAA5;color:#04342C;border:none;border-radius:12px;font-size:16px;font-weight:600;padding:12px;cursor:pointer;">Dungeon <span style="font-weight:400;font-size:11px;">— 3 units, 3 rooms</span></button>
       <button id="mSkir" style="width:210px;background:#2c3747;color:#cfd6e0;border:none;border-radius:12px;font-size:15px;padding:11px;cursor:pointer;">Skirmish <span style="font-size:11px;color:#8d99a8;">— 3v3</span></button>
       <button id="mFfa" style="width:210px;background:#2c3747;color:#cfd6e0;border:none;border-radius:12px;font-size:15px;padding:11px;cursor:pointer;">Free-for-all <span style="font-size:11px;color:#8d99a8;">— 4 teams of 2</span></button>
+          <button id="menuBack" style="width:210px;background:#2c3747;color:#cfd6e0;border:1px solid #445167;border-radius:12px;font-size:14px;font-weight:600;padding:11px;cursor:pointer;margin-top:6px;">BACK</button>
     </div>
     <div id="draft" style="position:absolute;left:0;top:0;right:0;bottom:0;background:#141b25;display:none;">
       <div style="position:absolute;left:0;top:10px;right:0;height:38px;text-align:center;">
@@ -872,7 +873,7 @@ function render(){if(drafting||!P)return;
  document.getElementById('turnN').textContent=turn;
  document.getElementById('hpT').textContent=P.hp+'/'+P.kit.hp;document.getElementById('hpB').style.width=(100*P.hp/P.kit.hp)+'%';
  document.getElementById('enT').textContent=P.en+'/'+EN;document.getElementById('enB').style.width=(100*P.en/EN)+'%';
- document.getElementById('room').textContent=gameMode==='dungeon'?(roomGoal+' — '+loot+'g'):(gameMode==='ffa'?(live().filter(u=>u.team!==0).length+' rivals left'):'');
+ document.getElementById('room').textContent=gameMode==='dungeon'?(roomGoal+((typeof EXP!=='undefined'&&EXP&&EXP.carriedGold)?(' — '+EXP.carriedGold+'g'):'')):(gameMode==='ffa'?(live().filter(u=>u.team!==0).length+' rivals left'):'');
  const ub=document.getElementById('unitBar');
  if(cfg.control>1&&phase==='turn'){
   const list=myRoster();
@@ -1496,7 +1497,9 @@ document.getElementById('dGo').addEventListener('pointerdown',()=>{
  if(picks[0].length<cfg.per)return;
  for(let t=1;t<cfg.teams;t++)while(picks[t].length<cfg.per){const rem=ROSTER.filter(x=>takenBy(x)<0);picks[t].push(rem[0]);}
  initBattle();});
-function setMode(m){gameMode=m;cfg=MODES[m];buildBoard(cfg.R,cfg.S);startDraft();}
+function setMode(m){
+ if(m==='dungeon'){SAVE.setDungeon('amethyst');showHome();return;}
+ gameMode=m;cfg=MODES[m];buildBoard(cfg.R,cfg.S);startDraft();}
 document.getElementById('mDun').addEventListener('pointerdown',()=>setMode('dungeon'));
 document.getElementById('mSkir').addEventListener('pointerdown',()=>setMode('skirmish'));
 document.getElementById('mFfa').addEventListener('pointerdown',()=>setMode('ffa'));
@@ -1504,10 +1507,8 @@ document.getElementById('rst').addEventListener('click',()=>{ROUTER.closeModal()
 // ---- new loop wiring ----
 document.getElementById('homePlay').addEventListener('pointerdown',playExpedition);
 document.getElementById('homeSquadBtn').addEventListener('pointerdown',showSquad);
-document.getElementById('homeDunBtn').addEventListener('pointerdown',()=>{
- // one dungeon in v1 — toggle between the two defined and return home
- const cur=SAVE.get().selectedDungeonId;
- SAVE.setDungeon(cur==='home_camp'?'amethyst':'home_camp');showHome();});
+document.getElementById('homeDunBtn').addEventListener('pointerdown',()=>ROUTER.go('menu'));
+document.getElementById('menuBack').addEventListener('pointerdown',showHome);
 document.getElementById('homeSet').addEventListener('pointerdown',showSettings);
 document.getElementById('homeInfo').addEventListener('pointerdown',()=>{
  window.alert('SMASH TACTICS\n\nDraft three fighters, raid the dungeon, and reach the exit to bank your loot.\n\nEach turn: move, then use one ability from the wheel. Facing matters — hits from behind do far more damage.\n\nIf your squad falls, everything you were carrying is lost.');});
