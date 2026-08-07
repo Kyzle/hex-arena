@@ -38,7 +38,7 @@ html,body{margin:0;padding:0;background:#0d1219;min-height:100%;display:flex;ali
 @keyframes sweepFade{0%{opacity:0}30%{opacity:.95}100%{opacity:0}}
 @keyframes whiteHit{0%{opacity:0;transform:scale(.7)}25%{opacity:1;transform:scale(1.15)}100%{opacity:0;transform:scale(1.4)}}
 @keyframes shakeIt{0%,100%{transform:translate(0,0)}20%{transform:translate(-3px,2px)}40%{transform:translate(3px,-2px)}60%{transform:translate(-2px,-2px)}80%{transform:translate(2px,2px)}}
-#scr.shake{animation:shakeIt .28s ease-in-out}
+#scrWrap.shake{animation:shakeIt .28s ease-in-out}
 #vig{position:absolute;inset:0;pointer-events:none;opacity:0;background:radial-gradient(ellipse at center,rgba(0,0,0,0) 45%,rgba(226,75,74,.55) 100%);}
 @keyframes vigPulse{0%{opacity:0}25%{opacity:1}100%{opacity:0}}
 #flashOverlay{position:absolute;inset:0;pointer-events:none;background:#fff;opacity:0;}
@@ -74,7 +74,7 @@ html,body{margin:0;padding:0;background:#0d1219;min-height:100%;display:flex;ali
 </style>
 </head>
 <body style="margin:0;padding:0;background:#000;width:100vw;height:100vh;overflow:hidden;display:flex;align-items:flex-start;justify-content:center;">
-  <div id="scr" style="position:relative;width:330px;height:586px;background:#151c26;overflow:hidden;touch-action:none;transform-origin:top center;">
+  <div id="scrWrap" style="transform-origin:top center;"><div id="scr" style="position:relative;width:330px;height:586px;background:#151c26;overflow:hidden;touch-action:none;">
     <div id="bgArt" style="position:absolute;inset:0;background-size:100% 100%;background-repeat:no-repeat;"></div>
     <div id="battleScreen" style="position:absolute;inset:0;">
     <div style="position:absolute;top:6px;left:8px;padding:4px 7px;border-radius:8px;background:rgba(12,14,28,.62);font-size:12px;color:#c9c2e8;">Turn <span id="turnN" style="color:#e8edf3;font-weight:500;">1</span></div>
@@ -98,13 +98,85 @@ html,body{margin:0;padding:0;background:#0d1219;min-height:100%;display:flex;ali
       <div id="overT" style="font-size:22px;color:#e8edf3;font-weight:500;"></div>
       <button id="rst" style="background:#5DCAA5;color:#04342C;border:none;border-radius:10px;font-size:15px;font-weight:500;padding:10px 26px;cursor:pointer;">New draft</button>
     </div>
+    <!-- ===== DUNGEON MAP ===== -->
     <div id="dmapScreen" style="position:absolute;inset:0;background:#10141f;display:none;flex-direction:column;align-items:center;padding:14px 10px;box-sizing:border-box;">
-      <div style="font-size:17px;font-weight:700;color:#e8edf3;">Dungeon map</div>
-      <div id="dmapInfo" style="font-size:11px;color:#cfd6e0;text-align:center;margin:6px 0 4px;line-height:1.5;"></div>
-      <svg id="dmapSvg" viewBox="0 0 330 300" style="width:310px;height:282px;"></svg>
-      <button id="dmapLeave" style="display:none;width:210px;background:#8a3b3f;color:#ffe3e3;border:1px solid #cf4b52;border-radius:10px;font-size:14px;font-weight:600;padding:10px;cursor:pointer;margin-top:2px;">Leave through the exit</button>
-      <div style="font-size:9.5px;color:#6f7b8c;text-align:center;margin-top:8px;line-height:1.5;">Blue start &middot; green rooms &middot; orange boss &middot; red exit<br>Only hexes touching cleared ground can be entered</div>
+      <div id="dmapTitle" style="font-size:17px;font-weight:700;color:#e8edf3;">Dungeon</div>
+      <div id="dmapInfo" style="font-size:11px;color:#cfd6e0;text-align:center;margin:6px 0 2px;line-height:1.55;"></div>
+      <svg id="dmapSvg" viewBox="0 0 330 300" style="width:308px;height:280px;"></svg>
+      <div id="dmapSquad" style="display:flex;gap:6px;width:100%;max-width:300px;margin-top:2px;"></div>
+      <div style="font-size:9.5px;color:#6f7b8c;text-align:center;margin-top:10px;line-height:1.5;">Tap a lit hex to enter &middot; reach the exit to bank your loot</div>
     </div>
+
+    <!-- ===== VICTORY ===== -->
+    <div id="victory" style="position:absolute;inset:0;background:rgba(10,14,22,.94);display:none;flex-direction:column;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;">
+      <div style="font-size:30px;font-weight:800;color:#5DCAA5;letter-spacing:1px;">VICTORY</div>
+      <div style="font-size:11px;color:#8d99a8;margin-top:4px;">Room cleared</div>
+      <div id="vicRewards" style="width:100%;max-width:250px;margin-top:18px;"></div>
+      <div style="font-size:10px;color:#f0d48a;margin-top:6px;text-align:center;">Carried loot banks only when you extract</div>
+      <button id="vicGo" style="margin-top:22px;width:210px;background:linear-gradient(#7ee2bd,#43b48f);color:#04342C;border:1px solid #9ff0d4;border-radius:12px;font-size:16px;font-weight:700;padding:13px;cursor:pointer;">CONTINUE</button>
+    </div>
+
+    <!-- ===== DEFEAT ===== -->
+    <div id="defeat" style="position:absolute;inset:0;background:rgba(8,9,14,.96);display:none;flex-direction:column;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;">
+      <div style="font-size:28px;font-weight:800;color:#E24B4A;letter-spacing:1px;">DEFEATED</div>
+      <div style="font-size:11px;color:#8d99a8;margin-top:6px;text-align:center;">The dungeon keeps what you were carrying</div>
+      <div id="defStats" style="margin-top:20px;text-align:center;"></div>
+      <button id="defGo" style="margin-top:24px;width:210px;background:#2c3747;color:#cfd6e0;border:1px solid #445167;border-radius:12px;font-size:15px;font-weight:600;padding:13px;cursor:pointer;">BACK TO HOME</button>
+    </div>
+
+    <!-- ===== EXPEDITION COMPLETE ===== -->
+    <div id="complete" style="position:absolute;inset:0;background:rgba(12,18,16,.96);display:none;flex-direction:column;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;">
+      <div style="font-size:26px;font-weight:800;color:#f0d48a;letter-spacing:1px;text-align:center;">EXPEDITION<br>COMPLETE</div>
+      <div style="font-size:11px;color:#9fe1cb;margin-top:6px;">You made it out</div>
+      <div id="compRewards" style="width:100%;max-width:250px;margin-top:16px;text-align:center;"></div>
+      <button id="compGo" style="margin-top:20px;width:210px;background:linear-gradient(#7ee2bd,#43b48f);color:#04342C;border:1px solid #9ff0d4;border-radius:12px;font-size:16px;font-weight:700;padding:13px;cursor:pointer;">BACK TO HOME</button>
+    </div>
+
+    <!-- ===== HOME ===== -->
+    <div id="home" style="position:absolute;inset:0;display:none;flex-direction:column;box-sizing:border-box;">
+      <div id="homeBg" style="position:absolute;inset:0;background-size:cover;background-position:center;"></div>
+      <div style="position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,12,22,.72) 0%,rgba(10,12,22,.25) 38%,rgba(10,12,22,.9) 100%);"></div>
+      <!-- top bar -->
+      <div style="position:relative;display:flex;align-items:center;gap:6px;padding:10px 10px 0;">
+        <div id="homeLvl" style="background:rgba(12,14,28,.75);border:1px solid #3a4356;border-radius:8px;padding:4px 8px;font-size:11px;font-weight:700;color:#8CD3F5;">Lv 1</div>
+        <div id="homeGold" style="background:rgba(12,14,28,.75);border:1px solid #3a4356;border-radius:8px;padding:4px 8px;font-size:11px;font-weight:700;color:#f0d48a;">0</div>
+        <div id="homeSparks" style="background:rgba(12,14,28,.75);border:1px solid #3a4356;border-radius:8px;padding:4px 8px;font-size:11px;font-weight:700;color:#b9a7e6;">0</div>
+        <div style="flex:1"></div>
+        <div id="homeSet" style="background:rgba(12,14,28,.75);border:1px solid #3a4356;border-radius:8px;width:28px;height:26px;display:flex;align-items:center;justify-content:center;font-size:14px;color:#cfd6e0;cursor:pointer;">&#9881;</div>
+      </div>
+      <div id="homeXp" style="position:relative;margin:5px 10px 0;height:3px;background:rgba(12,14,28,.7);border-radius:2px;overflow:hidden;"><div id="homeXpFill" style="height:100%;width:0%;background:#8CD3F5;"></div></div>
+      <!-- squad on scene -->
+      <div style="flex:1"></div>
+      <div id="homeSquad" style="position:relative;display:flex;justify-content:center;align-items:flex-end;gap:2px;padding:0 10px;"></div>
+      <!-- buttons -->
+      <div style="position:relative;padding:10px 16px 16px;">
+        <button id="homePlay" style="width:100%;background:linear-gradient(#7ee2bd,#43b48f);color:#04342C;border:1px solid #9ff0d4;border-radius:14px;font-size:20px;font-weight:800;padding:15px;cursor:pointer;box-shadow:0 3px 12px rgba(0,0,0,.55);letter-spacing:1px;">PLAY</button>
+        <div style="display:flex;gap:8px;margin-top:8px;">
+          <button id="homeSquadBtn" style="flex:1;background:rgba(30,38,52,.9);color:#cfd6e0;border:1px solid #445167;border-radius:11px;font-size:13px;font-weight:600;padding:10px;cursor:pointer;">SQUAD</button>
+          <button id="homeDunBtn" style="flex:1;background:rgba(30,38,52,.9);color:#cfd6e0;border:1px solid #445167;border-radius:11px;font-size:13px;font-weight:600;padding:10px;cursor:pointer;">DUNGEON</button>
+        </div>
+        <div id="homeInfo" style="text-align:center;font-size:10px;color:#8d99a8;margin-top:8px;cursor:pointer;">MORE INFO</div>
+      </div>
+    </div>
+
+    <!-- ===== SQUAD ===== -->
+    <div id="squad" style="position:absolute;inset:0;background:#131926;display:none;flex-direction:column;padding:12px 10px;box-sizing:border-box;">
+      <div style="font-size:16px;font-weight:700;color:#e8edf3;text-align:center;">Your Squad</div>
+      <div style="font-size:10px;color:#8d99a8;text-align:center;margin-top:3px;">Tap a slot, then tap a fighter to swap</div>
+      <div id="squadSlots" style="display:flex;gap:6px;margin:10px 0 8px;"></div>
+      <div id="squadRoster" style="flex:1;overflow-y:scroll;-webkit-overflow-scrolling:touch;touch-action:pan-y;"></div>
+      <button id="squadBack" style="margin-top:8px;width:100%;background:linear-gradient(#7ee2bd,#43b48f);color:#04342C;border:none;border-radius:12px;font-size:15px;font-weight:700;padding:12px;cursor:pointer;">DONE</button>
+    </div>
+
+    <!-- ===== SETTINGS ===== -->
+    <div id="settings" style="position:absolute;inset:0;background:#131926;display:none;flex-direction:column;align-items:center;padding:20px;box-sizing:border-box;">
+      <div style="font-size:16px;font-weight:700;color:#e8edf3;">Settings</div>
+      <div id="setRows" style="width:100%;max-width:250px;margin-top:16px;"></div>
+      <div style="flex:1"></div>
+      <div style="font-size:9px;color:#5f6b7c;">Smash Tactics — prototype v46</div>
+      <button id="setBack" style="margin-top:12px;width:210px;background:#2c3747;color:#cfd6e0;border:1px solid #445167;border-radius:12px;font-size:14px;font-weight:600;padding:12px;cursor:pointer;">BACK</button>
+    </div>
+
     <div id="menu" style="position:absolute;inset:0;background:#141b25;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:20px;box-sizing:border-box;">
       <div style="font-size:20px;font-weight:600;color:#e8edf3;">Hex Arena</div>
       <div id="menuWallet" style="font-size:12px;color:#f0d48a;text-align:center;"></div>
@@ -152,53 +224,81 @@ window.addEventListener('unhandledrejection',function(ev){
   if(h)h.textContent='ERR(promise): '+(ev.reason&&ev.reason.message||ev.reason);
   console.error('HexArena unhandled rejection:',ev.reason);}catch(e){}});
 
-// ---------- save store ----------
+// ---------- save store (v3) ----------
 // One versioned blob in localStorage. All persistence goes through SAVE.
-// Rules (per design):
-//   - cards are PER-CHARACTER: cards[charId][cardId] = {copies, level}
-//   - rewards bank ONLY on escaping through the exit
-//   - death or abandoning a run forfeits everything gathered in it
+// Rules:
+//   - currencies: gold, sparks. Cards are PER-CHARACTER.
+//   - XP comes from expeditions; level is derived from XP.
+//   - carried loot banks ONLY on successful extraction (tapping Exit).
 const SAVE=(function(){
- const KEY='hexarena_save_v2';
+ const KEY='smashtactics_save_v3';
+ const OLD_KEYS=['hexarena_save_v2','hexarena_save_v1'];
+ const CURRENCY_NAME='Sparks';        // data-driven: rename here only
  const DEFAULTS={
-  v:2,
+  v:3,
+  xp:0,
   gold:0,
   sparks:0,
-  cards:{},          // charId -> { cardId -> {copies:int, level:int} }
-  unlocked:[],       // character ids unlocked with sparks (base roster is free)
-  stats:{runs:0,escapes:0,deaths:0,bossKills:0,goldEarned:0}
+  selectedDungeonId:'home_camp',
+  activeSquad:[],                     // 3 character ids; filled on first load
+  characterLoadouts:{},               // charId -> [cardId, cardId, cardId]
+  cards:{},                           // charId -> { cardId -> {copies, level} }
+  unlockedCharacters:[],              // beyond the free base roster
+  stats:{expeditions:0,extractions:0,defeats:0,roomsCleared:0,enemiesDefeated:0,goldEarned:0}
  };
+ // level curve: level n requires 100*n XP in that band (1->2 = 100, 2->3 = 200 ...)
+ function levelFromXp(xp){let lv=1,need=100,left=xp;
+  while(left>=need){left-=need;lv++;need=100*lv;}
+  return {level:lv,into:left,need:need};}
  let data=null;
  function load(){
   try{
-   const raw=localStorage.getItem(KEY);
+   let raw=localStorage.getItem(KEY);
+   if(!raw){for(const k of OLD_KEYS){const o=localStorage.getItem(k);if(o){raw=o;break;}}}
    data=raw?JSON.parse(raw):JSON.parse(JSON.stringify(DEFAULTS));
   }catch(e){data=JSON.parse(JSON.stringify(DEFAULTS));}
   for(const k in DEFAULTS)if(data[k]===undefined)data[k]=JSON.parse(JSON.stringify(DEFAULTS[k]));
-  if(data.v!==2){/* future migrations */ data.v=2;}
+  for(const k in DEFAULTS.stats)if(data.stats[k]===undefined)data.stats[k]=0;
+  data.v=3;
   return data;
  }
- function persist(){
-  try{localStorage.setItem(KEY,JSON.stringify(data));}catch(e){/* blocked: play on, unsaved */}
- }
+ function persist(){try{localStorage.setItem(KEY,JSON.stringify(data));}catch(e){}}
  function get(){return data||load();}
+ function level(){return levelFromXp(get().xp).level;}
+ function levelProgress(){return levelFromXp(get().xp);}
+ function addXp(n){get().xp+=Math.max(0,n|0);persist();}
  function addGold(n){get().gold+=n;get().stats.goldEarned+=Math.max(0,n);persist();}
  function addSparks(n){get().sparks+=n;persist();}
  function addCard(charId,cardId){
   const byChar=get().cards[charId]||(get().cards[charId]={});
   const c=byChar[cardId]||(byChar[cardId]={copies:0,level:1});
   c.copies++;persist();return c;}
- // The only way rewards enter the profile: walking out the exit.
- // payload: {gold, sparks, bossDown, cards:[{ch,cd}]}
- function commitEscape(p){
+ // ---- persistent selections ----
+ function setDungeon(id){get().selectedDungeonId=id;persist();}
+ function setSquad(ids){get().activeSquad=ids.slice(0,3);persist();}
+ function setLoadout(charId,cards){get().characterLoadouts[charId]=cards.slice(0,3);persist();}
+ // ---- expedition results ----
+ // The ONLY route by which carried loot enters the profile.
+ function commitExtraction(p){
   addGold(p.gold||0);
   get().sparks+=(p.sparks||0);
   (p.cards||[]).forEach(x=>addCard(x.ch,x.cd));
-  get().stats.escapes++;get().stats.runs++;
-  if(p.bossDown)get().stats.bossKills++;
+  addXp(p.xp||0);
+  get().stats.extractions++;get().stats.expeditions++;
+  get().stats.roomsCleared+=(p.rooms||0);
+  get().stats.enemiesDefeated+=(p.kills||0);
   persist();}
- function recordDeath(){get().stats.deaths++;get().stats.runs++;persist();}
- return {load,get,persist,addGold,addSparks,addCard,commitEscape,recordDeath,KEY};
+ function recordDefeat(p){
+  p=p||{};
+  addXp(p.xp||0);                      // a failed run still teaches something
+  get().stats.defeats++;get().stats.expeditions++;
+  get().stats.roomsCleared+=(p.rooms||0);
+  get().stats.enemiesDefeated+=(p.kills||0);
+  persist();}
+ function reset(){data=JSON.parse(JSON.stringify(DEFAULTS));persist();}
+ return {load,get,persist,level,levelProgress,addXp,addGold,addSparks,addCard,
+         setDungeon,setSquad,setLoadout,commitExtraction,recordDefeat,reset,
+         CURRENCY_NAME,KEY};
 })();
 SAVE.load();
 
@@ -293,20 +393,20 @@ function buildBoard(rad,size){
   svg.insertBefore(el,svg.firstChild);
   el.addEventListener('pointerdown',e=>{e.stopPropagation();tapTile(t);});});}
 // ---------- screen router ----------
-// One active screen at a time. Screens: menu | draft | dmap | battle.
-// #over is a modal that sits on top of whatever screen is active.
+// One active screen at a time. #over remains a modal for skirmish/FFA endings.
 const ROUTER=(function(){
- const NAMES=['menu','draft','dmap','battle'];
- const ID={menu:'menu',draft:'draft',dmap:'dmapScreen',battle:'battleScreen'};
- const SHOW={menu:'flex',draft:'flex',dmap:'flex',battle:'block'};
+ const ID={home:'home',squad:'squad',settings:'settings',menu:'menu',draft:'draft',
+           dmap:'dmapScreen',battle:'battleScreen',
+           victory:'victory',defeat:'defeat',complete:'complete'};
+ const SHOW={battle:'block'};   // everything else is flex
  let current=null;
- function el(n){return document.getElementById(ID[n]);}
  function go(name){
   if(!ID[name])return;
-  NAMES.forEach(n=>{const e=el(n);if(e)e.style.display=(n===name)?SHOW[n]:'none';});
+  Object.keys(ID).forEach(n=>{
+   const e=document.getElementById(ID[n]);
+   if(e)e.style.display=(n===name)?(SHOW[n]||'flex'):'none';});
   current=name;
-  // board input is only live on the battle screen
-  drafting=(name!=='battle');
+  drafting=(name!=='battle');       // board input only live in battle
  }
  function is(name){return current===name;}
  function openModal(){const o=document.getElementById('over');if(o)o.style.display='flex';}
@@ -482,7 +582,7 @@ function impactAt(t,col){
   g.setAttribute('transform','translate('+t.x+','+t.y+') scale('+sc.toFixed(3)+')');
   g.style.opacity=String(k<0.25?k*4:1-(k-0.25)/0.75);
  });}
-function shake(){const el=document.getElementById('scr');el.classList.remove('shake');void el.offsetWidth;el.classList.add('shake');
+function shake(){const el=document.getElementById('scrWrap');if(!el)return;el.classList.remove('shake');void el.offsetWidth;el.classList.add('shake');
  setTimeout(()=>el.classList.remove('shake'),300);}
 function vignette(){const v=document.getElementById('vig');v.style.animation='none';void v.offsetWidth;v.style.animation='vigPulse .55s ease-out forwards';}
 function fullFlash(){const f=document.getElementById('flashOverlay');f.style.animation='none';void f.offsetWidth;f.style.animation='fullFlash .35s ease-out forwards';}
@@ -664,8 +764,7 @@ function kill(c,slayer){c.dead=true;SND.play('death');
  checkWin();}
 function checkWin(){
  if(!controlled().length){over=true;
-  if(gameMode==='dungeon'){SAVE.recordDeath();
-   endGame('Defeated — the dungeon keeps your loot');return;}
+  if(gameMode==='dungeon'){expeditionLost();return;}
   endGame('Defeated');return;}
  const foes=live().filter(u=>u.team!==0);
  if(!foes.length){
@@ -1109,110 +1208,262 @@ function goLabel(){const g=document.getElementById('go');
 document.getElementById('swT').addEventListener('click',()=>{if(phase!=='react')return;
  const list=rMode==='shield'?controlled():rMode==='counter'?foesOf(P):[];if(!list.length)return;
  rTarget=list[(list.indexOf(rTarget)+1)%list.length];render();});
-// ---------- dungeon map ----------
-// node types: entry (start), common, boss, exit
-const DUNGEON=[
- {q:-1,r:2,type:'entry'},
- {q:-1,r:1,type:'common'},{q:-1,r:0,type:'common'},{q:0,r:-1,type:'common'},
- {q:1,r:-1,type:'common'},{q:1,r:0,type:'common'},{q:0,r:1,type:'common'},
- {q:0,r:0,type:'boss'},
- {q:1,r:-2,type:'exit'}];
-let dmap=[],loot=0,lootLeft=0,curNode=null,runSparks=0,bossDown=false;
-const NODE_COL={entry:['#3b82c4','#8fc7f0'],common:['#4e9e5a','#a7dcae'],
- boss:['#e0812f','#f7c58e'],exit:['#cf4b52','#f4a3a7']};
-function dnode(q,r){return dmap.find(n=>n.q===q&&n.r===r);}
-function dAdj(n){return dirs.map(d=>dnode(n.q+d[0],n.r+d[1])).filter(Boolean);}
-function dAvailable(n){return !n.done&&dAdj(n).some(a=>a.done);}
-function initDungeon(){
- dmap=DUNGEON.map(n=>Object.assign({},n,{done:false,
-  reward:n.type==='boss'?40:n.type==='common'?15:0}));
- dmap.find(n=>n.type==='entry').done=true;
- loot=0;lootLeft=dmap.reduce((a,n)=>a+n.reward,0);curNode=null;runSparks=0;bossDown=false;}
+// ---------- dungeon: v1 three-node expedition ----------
+// ENTRY -> COMBAT -> EXIT. Entry starts cleared; Combat is immediately available;
+// Exit unlocks on victory. Tapping Exit extracts and banks the carried loot.
+const DUNGEONS={
+ home_camp:{id:'home_camp',name:'Home Camp',sub:'Training Expedition',
+  gold:[40,70],xp:60,sparkChance:0,foes:2},
+ amethyst:{id:'amethyst',name:'Amethyst Hollow',sub:'Crystal Depths',
+  gold:[70,120],xp:110,sparkChance:0.35,foes:3}
+};
+function curDungeon(){return DUNGEONS[SAVE.get().selectedDungeonId]||DUNGEONS.home_camp;}
+
+// three fixed nodes, laid out as a short path
+const NODES=[
+ {id:'entry', q:-1,r:1, type:'entry'},
+ {id:'combat',q:0, r:0, type:'combat'},
+ {id:'exit',  q:1, r:-1,type:'exit'}
+];
+const NODE_COL={entry:['#3b82c4','#8fc7f0'],combat:['#c4523b','#f0a08f'],exit:['#4e9e5a','#a7dcae']};
+
+let EXP=null;   // live expedition state
+function newExpedition(){
+ const d=curDungeon();
+ EXP={dungeonId:d.id,
+  cleared:{entry:true,combat:false},
+  exitUnlocked:false,
+  carriedGold:0,carriedSparks:0,carriedCards:[],carriedXp:0,
+  rooms:0,kills:0};
+ return EXP;}
+function nodeState(n){
+ if(n.type==='entry')return 'cleared';
+ if(n.type==='combat')return EXP.cleared.combat?'cleared':'available';
+ return EXP.exitUnlocked?'available':'locked';}
+
 // ---------- map screen ----------
 function showMap(){
  ROUTER.go('dmap');
  const svgm=document.getElementById('dmapSvg');
- const MS=30,MCX=165,MCY=150;
+ const MS=42,MCX=165,MCY=140;
  let out='';
- dmap.forEach(n=>{
+ // connecting path drawn first so nodes sit on top
+ for(let i=0;i<NODES.length-1;i++){
+  const a=NODES[i],b=NODES[i+1];
+  const ax=MCX+1.5*MS*a.q, ay=MCY+SQ*MS*(a.r+a.q/2);
+  const bx=MCX+1.5*MS*b.q, by=MCY+SQ*MS*(b.r+b.q/2);
+  const live=nodeState(b)!=='locked';
+  out+='<line x1="'+ax+'" y1="'+ay+'" x2="'+bx+'" y2="'+by+'" stroke="'+(live?'#5DCAA5':'#333d4e')+'" stroke-width="4" stroke-linecap="round" opacity="'+(live?0.9:0.5)+'"/>';
+ }
+ NODES.forEach(n=>{
   const x=MCX+1.5*MS*n.q, y=MCY+SQ*MS*(n.r+n.q/2);
-  let pts='';for(let i=0;i<6;i++){const a=Math.PI/3*i;pts+=(x+(MS-2)*Math.cos(a))+','+(y+(MS-2)*Math.sin(a))+' ';}
-  const avail=dAvailable(n);
-  const col=NODE_COL[n.type];
-  let fill='#232a3a',stroke='#39465a',op=1;
-  if(n.done){fill=col[0];stroke=col[1];}
-  else if(avail){fill=col[0];stroke='#ffffff';op=0.85;}
-  else {op=0.4;}
-  out+='<polygon points="'+pts+'" fill="'+fill+'" stroke="'+stroke+'" stroke-width="'+(avail&&!n.done?3:1.6)+'" opacity="'+op+'" '
-     +(avail?'style="cursor:pointer" data-q="'+n.q+'" data-r="'+n.r+'"':'')+'/>';
-  const label=n.type==='boss'?'BOSS':n.type==='exit'?'EXIT':n.type==='entry'?'START':(n.done?'\u2713':'?');
-  out+='<text x="'+x+'" y="'+(y+4)+'" text-anchor="middle" font-size="'+(n.type==='common'?13:10)+'" font-weight="700" fill="'+(n.done||avail?'#0e1420':'#7d8b9c')+'" style="pointer-events:none">'+label+'</text>';
-  if(n.reward&&!n.done)out+='<text x="'+x+'" y="'+(y+17)+'" text-anchor="middle" font-size="8" fill="#f0d48a" style="pointer-events:none">'+n.reward+'g</text>';
+  let pts='';for(let i=0;i<6;i++){const a=Math.PI/3*i;pts+=(x+(MS-3)*Math.cos(a))+','+(y+(MS-3)*Math.sin(a))+' ';}
+  const st=nodeState(n),col=NODE_COL[n.type];
+  let fill='#232a3a',stroke='#39465a',op=1,sw=2;
+  if(st==='cleared'){fill=col[0];stroke=col[1];}
+  else if(st==='available'){fill=col[0];stroke='#ffffff';sw=3.5;}
+  else{op=0.38;}
+  out+='<polygon points="'+pts+'" fill="'+fill+'" stroke="'+stroke+'" stroke-width="'+sw+'" opacity="'+op+'" '
+     +(st==='available'?'style="cursor:pointer" data-id="'+n.id+'"':'')+'/>';
+  const icon=n.type==='entry'?'\u2302':n.type==='combat'?'\u2694':'\u25B6';
+  out+='<text x="'+x+'" y="'+(y+2)+'" text-anchor="middle" font-size="20" fill="'+(st==='locked'?'#6b7686':'#0e1420')+'" style="pointer-events:none">'+icon+'</text>';
+  const lab=n.type==='entry'?'ENTRY':n.type==='combat'?(EXP.cleared.combat?'CLEARED':'COMBAT'):'EXIT';
+  out+='<text x="'+x+'" y="'+(y+MS-6)+'" text-anchor="middle" font-size="8.5" font-weight="700" fill="'+(st==='locked'?'#6b7686':'#0e1420')+'" style="pointer-events:none">'+lab+'</text>';
  });
  svgm.innerHTML=out;
- Array.from(svgm.querySelectorAll('polygon[data-q]')).forEach(pg=>{
-  pg.addEventListener('pointerdown',e=>{e.stopPropagation();
-   enterNode(dnode(parseInt(pg.dataset.q),parseInt(pg.dataset.r)));});});
- const alive=controlled().length;
+ Array.from(svgm.querySelectorAll('polygon[data-id]')).forEach(pg=>{
+  pg.addEventListener('pointerdown',e=>{e.stopPropagation();enterNode(pg.dataset.id);});});
+
+ const d=curDungeon();
+ document.getElementById('dmapTitle').textContent=d.name;
  document.getElementById('dmapInfo').innerHTML=
-  '<b style="color:#f0d48a">'+loot+'g</b> collected &middot; '+lootLeft+'g still in the dungeon<br>'
-  +'<span style="color:#8d99a8">squad: '+alive+' alive &middot; tap a lit hex to enter</span>';
- const ex=dmap.find(n=>n.type==='exit');
- document.getElementById('dmapLeave').style.display=(dAvailable(ex)||ex.done)?'block':'none';
+  (EXP.carriedGold?('<b style="color:#f0d48a">'+EXP.carriedGold+'g</b> carried'):'<span style="color:#8d99a8">no loot carried yet</span>')
+  +(EXP.carriedSparks?' &middot; <b style="color:#b9a7e6">'+EXP.carriedSparks+' spark</b>':'')
+  +'<br><span style="color:#8d99a8">'+(EXP.exitUnlocked?'exit open — extract to bank your loot':'clear the room to open the exit')+'</span>';
+ renderSquadStrip();
 }
-function hideMap(){/* routing handled by startTurns -> ROUTER.go('battle') */}
-function enterNode(n){
- if(!n||!dAvailable(n))return;
- if(n.type==='exit'){confirmLeave();return;}
- curNode=n;hideMap();
- controlled().forEach(c=>{c.hp=Math.min(c.kit.hp,c.hp+6);c.en=Math.min(EN,c.en+5);});
- layoutRoom(n);startTurns();}
-function confirmLeave(){
- const msg=lootLeft>0
-  ?'Leave now with '+loot+'g?\nYou forfeit the '+lootLeft+'g still inside.'
-  :'Leave the dungeon with '+loot+'g?';
- if(window.confirm(msg)){
-  over=true;
-  SAVE.commitEscape({gold:loot,sparks:runSparks,bossDown:bossDown,cards:[]});
-  SND.play('reward');
-  document.getElementById('overT').textContent='Escaped with '+loot+'g'+(runSparks?' and '+runSparks+' spark'+(runSparks>1?'s':''):'');
-  document.getElementById('rst').textContent='New run';
-  ROUTER.openModal();}}
-function roomClear(){
- over=true;
- if(curNode){curNode.done=true;loot+=curNode.reward;lootLeft-=curNode.reward;
-  if(curNode.type==='boss'){runSparks+=1;bossDown=true;}
-  SND.play('reward');}
- setTimeout(()=>{
-  const gained=curNode?curNode.reward:0;
-  document.getElementById('overT').innerHTML='Room cleared'+(gained?'<br><span style="font-size:14px;color:#f0d48a">+'+gained+'g</span>':'');
-  document.getElementById('rst').textContent='Back to map';
-  ROUTER.openModal();},600);}
-function backToMap(){
- ROUTER.closeModal();
- over=false;showMap();}
-function layoutRoom(n){walls=[];
- const boss=n.type==='boss';
- roomGoal=boss?'BOSS':'Clear the room';
- zoneTiles=boss?[[0,1],[0,-1]].map(z=>map[z[0]+','+z[1]]).filter(Boolean)
-                :[[0,0]].map(z=>map[z[0]+','+z[1]]).filter(Boolean);
- cacheTiles=(boss?[[-3,2],[3,-2]]:[[-3,1],[3,-1]]).map(c=>({t:map[c[0]+','+c[1]],taken:false})).filter(o=>o.t);
- const foes=boss?3:2+(Math.random()<0.5?1:0);
+function renderSquadStrip(){
+ const el=document.getElementById('dmapSquad');if(!el)return;
+ el.innerHTML='';
+ myUnits.forEach(u=>{
+  const pct=Math.max(0,u.hp/u.kit.hp);
+  const d=document.createElement('div');
+  d.style.cssText='flex:1;background:#1b2431;border:1px solid #2c3747;border-radius:8px;padding:4px 3px;text-align:center;'+(u.dead?'opacity:.35;':'');
+  d.innerHTML='<div style="font-size:8.5px;font-weight:600;color:#cfd6e0;">'+u.kit.nm+'</div>'
+   +'<div style="height:4px;background:#2b3441;border-radius:2px;margin-top:3px;overflow:hidden;">'
+   +'<div style="height:100%;width:'+(pct*100)+'%;background:'+(pct<0.3?'#E24B4A':'#5DCAA5')+';"></div></div>'
+   +'<div style="font-size:8px;color:#8d99a8;margin-top:2px;">'+Math.max(0,u.hp)+'/'+u.kit.hp+'</div>';
+  el.appendChild(d);});
+}
+function enterNode(id){
+ if(id==='exit'){extract();return;}
+ if(id!=='combat'||EXP.cleared.combat)return;
+ controlled().forEach(c=>{c.hp=Math.min(c.kit.hp,c.hp+4);c.en=Math.min(EN,c.en+5);});
+ layoutRoom();startTurns();}
+
+// ---------- room setup ----------
+function layoutRoom(){
+ const d=curDungeon();
+ walls=[];zoneTiles=[];cacheTiles=[];roomGoal='Clear the room';
  const sp=SPAWN[2];
  myUnits.forEach((u,i)=>{u.pos={q:sp[0][i][0],r:sp[0][i][1]};u.facing=sp[0][i][2];});
- UNITS.filter(u=>u.team===1).forEach((e,i)=>{const on=i<foes;e.dead=!on;e.el.style.opacity=on?'1':'0';
+ UNITS.filter(u=>u.team===1).forEach((e,i)=>{
+  const on=i<d.foes;e.dead=!on;e.el.style.opacity=on?'1':'0';
   if(!on)return;
   e.pos={q:sp[1][i][0],r:sp[1][i][1]};e.facing=sp[1][i][2];
   e.kit=Object.assign({},e.baseKit);
-  if(boss&&i===0)e.kit=Object.assign({},e.baseKit,{nm:'BOSS '+e.baseKit.nm,hp:Math.round(e.baseKit.hp*1.9),dmg:e.baseKit.dmg+3});
-  e.hp=e.kit.hp;e.en=EN;paint(e);});}
+  e.hp=e.kit.hp;e.en=EN;paint(e);});
+}
+
+// ---------- victory ----------
+function roomClear(){
+ over=true;
+ const d=curDungeon();
+ const gold=Math.round(d.gold[0]+Math.random()*(d.gold[1]-d.gold[0]));
+ const spark=(Math.random()<d.sparkChance)?1:0;
+ EXP.cleared.combat=true;EXP.exitUnlocked=true;
+ EXP.carriedGold+=gold;EXP.carriedSparks+=spark;EXP.carriedXp+=d.xp;
+ EXP.rooms++;EXP.kills+=d.foes;
+ SND.play('reward');
+ setTimeout(()=>{
+  document.getElementById('vicRewards').innerHTML=
+   rewardRow('\u25CF','#f0d48a',gold+' gold')
+   +(spark?rewardRow('\u2726','#b9a7e6',spark+' spark'):'')
+   +rewardRow('\u25B2','#8CD3F5',d.xp+' XP');
+  ROUTER.go('victory');},520);
+}
+function rewardRow(icon,col,txt){
+ return '<div style="display:flex;align-items:center;gap:10px;background:#1b2431;border:1px solid #2c3747;border-radius:10px;padding:9px 12px;margin:6px 0;">'
+  +'<div style="width:22px;height:22px;border-radius:50%;background:'+col+'22;color:'+col+';display:flex;align-items:center;justify-content:center;font-size:12px;">'+icon+'</div>'
+  +'<div style="font-size:13px;font-weight:600;color:#e8edf3;">'+txt+'</div></div>';
+}
+function victoryContinue(){over=false;showMap();}
+
+// ---------- defeat ----------
+function expeditionLost(){
+ over=true;
+ SAVE.recordDefeat({xp:Math.round(EXP.carriedXp*0.25),rooms:EXP.rooms,kills:EXP.kills});
+ setTimeout(()=>{
+  document.getElementById('defStats').innerHTML=
+   '<div style="font-size:12px;color:#8d99a8;line-height:1.9;">'
+   +'Rooms cleared <b style="color:#cfd6e0">'+EXP.rooms+'</b><br>'
+   +'Enemies defeated <b style="color:#cfd6e0">'+EXP.kills+'</b><br>'
+   +'<span style="color:#E24B4A">Forfeited '+EXP.carriedGold+'g'
+   +(EXP.carriedSparks?' and '+EXP.carriedSparks+' spark':'')+'</span></div>';
+  ROUTER.go('defeat');},560);
+}
+
+// ---------- extraction ----------
+function extract(){
+ SAVE.commitExtraction({gold:EXP.carriedGold,sparks:EXP.carriedSparks,
+  cards:EXP.carriedCards,xp:EXP.carriedXp,rooms:EXP.rooms,kills:EXP.kills});
+ SND.play('reward');
+ document.getElementById('compRewards').innerHTML=
+  rewardRow('\u25CF','#f0d48a',EXP.carriedGold+' gold banked')
+  +(EXP.carriedSparks?rewardRow('\u2726','#b9a7e6',EXP.carriedSparks+' spark banked'):'')
+  +rewardRow('\u25B2','#8CD3F5',EXP.carriedXp+' XP')
+  +'<div style="font-size:11px;color:#8d99a8;margin-top:8px;">Rooms cleared '+EXP.rooms+' &middot; enemies defeated '+EXP.kills+'</div>';
+ ROUTER.go('complete');
+}
+
+// ---------- home / squad / settings ----------
+function baseRoster(){return ROSTER;}                       // all free in v1
+function squadKits(){
+ const ids=SAVE.get().activeSquad;
+ const out=ids.map(id=>ROSTER.find(k=>k.id===id)).filter(Boolean);
+ return out;}
+function ensureSquad(){
+ const s=SAVE.get();
+ if(!s.activeSquad||s.activeSquad.length<3){
+  SAVE.setSquad(ROSTER.slice(0,3).map(k=>k.id));}}
+
+function showHome(){
+ ensureSquad();
+ ROUTER.go('home');
+ const s=SAVE.get(),p=SAVE.levelProgress();
+ document.getElementById('homeLvl').textContent='Lv '+p.level;
+ document.getElementById('homeGold').textContent=s.gold;
+ document.getElementById('homeSparks').textContent=s.sparks;
+ document.getElementById('homeXpFill').style.width=Math.round(p.into/p.need*100)+'%';
+ const bg=document.getElementById('homeBg');
+ if(bg&&typeof BG==='string')bg.style.backgroundImage='url("'+BG+'")';
+ // squad standing in the scene
+ const row=document.getElementById('homeSquad');row.innerHTML='';
+ squadKits().forEach(k=>{
+  const d=document.createElement('div');
+  d.style.cssText='width:33%;text-align:center;';
+  const art=k.art&&ART[k.art];
+  d.innerHTML=(art?'<img src="'+art.frames[5]+'" style="height:96px;display:block;margin:0 auto;filter:drop-shadow(0 6px 10px rgba(0,0,0,.6));">'
+                  :'<div style="height:96px;display:flex;align-items:flex-end;justify-content:center;"><div style="width:44px;height:44px;border-radius:50%;background:#5DCAA5;"></div></div>')
+   +'<div style="font-size:9.5px;font-weight:600;color:#e8edf3;text-shadow:0 1px 3px #000;margin-top:2px;">'+k.nm+'</div>';
+  row.appendChild(d);});
+}
+// ---- squad screen ----
+let squadSlotSel=0;
+function showSquad(){
+ ensureSquad();ROUTER.go('squad');renderSquad();}
+function renderSquad(){
+ const s=SAVE.get();
+ const slots=document.getElementById('squadSlots');slots.innerHTML='';
+ s.activeSquad.forEach((id,i)=>{
+  const k=ROSTER.find(x=>x.id===id);
+  const d=document.createElement('div');
+  const sel=i===squadSlotSel;
+  d.style.cssText='flex:1;border-radius:10px;padding:6px 3px;text-align:center;cursor:pointer;background:'
+   +(sel?'#1d4a3b':'#1b2431')+';border:2px solid '+(sel?'#5DCAA5':'#2c3747')+';';
+  d.innerHTML='<div style="font-size:11px;font-weight:700;color:'+(sel?'#5DCAA5':'#cfd6e0')+';">'+(k?k.nm:'—')+'</div>'
+   +'<div style="font-size:8.5px;color:#8d99a8;margin-top:2px;">'+(k?('HP '+k.hp+' · DMG '+k.dmg):'empty')+'</div>';
+  d.addEventListener('pointerdown',()=>{squadSlotSel=i;renderSquad();});
+  slots.appendChild(d);});
+ const g=document.getElementById('squadRoster');g.innerHTML='';
+ ROSTER.forEach(k=>{
+  const inSquad=s.activeSquad.indexOf(k.id)>-1;
+  const d=document.createElement('div');
+  d.style.cssText='display:flex;align-items:center;gap:9px;background:#1b2431;border:1.5px solid '
+   +(inSquad?'#5DCAA5':'#2c3747')+';border-radius:10px;padding:7px 9px;margin-bottom:6px;cursor:pointer;'
+   +(inSquad?'opacity:.55;':'');
+  d.innerHTML='<div style="flex:1;text-align:left;"><div style="font-size:12px;font-weight:600;color:#e8edf3;">'+k.nm+'</div>'
+   +'<div style="font-size:9px;color:#5DCAA5;margin-top:1px;">'+k.tr+'</div></div>'
+   +'<div style="font-size:9px;color:#8d99a8;text-align:right;white-space:nowrap;">HP '+k.hp+'<br>DMG '+k.dmg+'</div>';
+  d.addEventListener('pointerdown',()=>{
+   if(inSquad)return;
+   const arr=SAVE.get().activeSquad.slice();
+   arr[squadSlotSel]=k.id;SAVE.setSquad(arr);renderSquad();});
+  g.appendChild(d);});
+}
+// ---- settings ----
+function showSettings(){
+ ROUTER.go('settings');
+ const rows=document.getElementById('setRows');rows.innerHTML='';
+ const mk=(label,val,onToggle)=>{
+  const d=document.createElement('div');
+  d.style.cssText='display:flex;align-items:center;justify-content:space-between;background:#1b2431;border:1px solid #2c3747;border-radius:10px;padding:11px 13px;margin-bottom:8px;';
+  d.innerHTML='<span style="font-size:13px;color:#cfd6e0;">'+label+'</span>'
+   +'<span style="font-size:12px;font-weight:700;color:'+(val?'#5DCAA5':'#6b7686')+';">'+(val?'ON':'OFF')+'</span>';
+  d.addEventListener('pointerdown',()=>{onToggle();showSettings();});
+  rows.appendChild(d);};
+ mk('Sound',SND.enabled,()=>{SND.enabled=!SND.enabled;});
+ const reset=document.createElement('div');
+ reset.style.cssText='text-align:center;font-size:11px;color:#E24B4A;margin-top:18px;cursor:pointer;';
+ reset.textContent='Reset save';
+ reset.addEventListener('pointerdown',()=>{
+  if(window.confirm('Erase all progress? This cannot be undone.')){SAVE.reset();showHome();}});
+ rows.appendChild(reset);
+}
+
 // ---------- draft & setup ----------
 let picks=[[],[],[],[]];
-function startMenu(){ROUTER.closeModal();ROUTER.go('menu');
- const s=SAVE.get();
- document.getElementById('menuWallet').innerHTML=
-  s.gold+'g &nbsp;&middot;&nbsp; '+s.sparks+' spark'+(s.sparks===1?'':'s')
-  +(s.stats.runs?' &nbsp;&middot;&nbsp; <span style="color:#8d99a8">'+s.stats.escapes+'/'+s.stats.runs+' escapes</span>':'');}
+function startMenu(){ROUTER.closeModal();showHome();}
+// PLAY: saved squad + saved dungeon, straight into the expedition. No confirmations.
+function playExpedition(){
+ ensureSquad();
+ gameMode='dungeon';cfg=MODES.dungeon;buildBoard(cfg.R,cfg.S);
+ picks=[squadKits(),[],[],[]];
+ // fill the enemy team from the rest of the roster
+ const mine=picks[0].map(k=>k.id);
+ picks[1]=ROSTER.filter(k=>mine.indexOf(k.id)<0).slice(0,3);
+ newExpedition();
+ initBattle();}
 (function(){var g=document.getElementById('dGrid');var sy=0,st=0,drag=false;
  g.addEventListener('touchstart',function(e){drag=true;sy=e.touches[0].clientY;st=g.scrollTop;},{passive:true});
  g.addEventListener('touchmove',function(e){if(!drag)return;g.scrollTop=st-(e.touches[0].clientY-sy);e.stopPropagation();},{passive:true});
@@ -1254,10 +1505,22 @@ function setMode(m){gameMode=m;cfg=MODES[m];buildBoard(cfg.R,cfg.S);startDraft()
 document.getElementById('mDun').addEventListener('pointerdown',()=>setMode('dungeon'));
 document.getElementById('mSkir').addEventListener('pointerdown',()=>setMode('skirmish'));
 document.getElementById('mFfa').addEventListener('pointerdown',()=>setMode('ffa'));
-document.getElementById('rst').addEventListener('click',()=>{
- ROUTER.closeModal();
- if(gameMode==='dungeon'&&controlled().length&&!live().filter(u=>u.team!==0).length){backToMap();return;}
- startMenu();});
+document.getElementById('rst').addEventListener('click',()=>{ROUTER.closeModal();startMenu();});
+// ---- new loop wiring ----
+document.getElementById('homePlay').addEventListener('pointerdown',playExpedition);
+document.getElementById('homeSquadBtn').addEventListener('pointerdown',showSquad);
+document.getElementById('homeDunBtn').addEventListener('pointerdown',()=>{
+ // one dungeon in v1 — toggle between the two defined and return home
+ const cur=SAVE.get().selectedDungeonId;
+ SAVE.setDungeon(cur==='home_camp'?'amethyst':'home_camp');showHome();});
+document.getElementById('homeSet').addEventListener('pointerdown',showSettings);
+document.getElementById('homeInfo').addEventListener('pointerdown',()=>{
+ window.alert('SMASH TACTICS\n\nDraft three fighters, raid the dungeon, and reach the exit to bank your loot.\n\nEach turn: move, then use one ability from the wheel. Facing matters — hits from behind do far more damage.\n\nIf your squad falls, everything you were carrying is lost.');});
+document.getElementById('squadBack').addEventListener('pointerdown',showHome);
+document.getElementById('setBack').addEventListener('pointerdown',showHome);
+document.getElementById('vicGo').addEventListener('pointerdown',victoryContinue);
+document.getElementById('defGo').addEventListener('pointerdown',showHome);
+document.getElementById('compGo').addEventListener('pointerdown',showHome);
 function startTurns(){
  phase='turn';mode='walk';prevMode='walk';rMode='dodge';pending=null;pendD=0;turn=1;rTarget=null;shielded=null;
  lastAttacker=null;queue=[];threat=[];armed=null;pendingHit=null;over=false;savedP=null;
@@ -1273,7 +1536,7 @@ function initBattle(){
  myUnits=UNITS.filter(u=>!u.dead&&u.team===0);
  walls=[];zoneTiles=[];cacheTiles=[];roomGoal='';
  room=0;
- if(gameMode==='dungeon'){initDungeon();showMap();return;}
+ if(gameMode==='dungeon'){showMap();return;}
  startTurns();}
 (function initArt(){
  const el=document.getElementById('bgArt');
@@ -1289,19 +1552,17 @@ if('serviceWorker' in navigator){
   });
 }
 </script>
+</div>
 <script>
 (function(){
   function resize(){
-    var scr=document.getElementById('scr');
-    if(!scr)return;
+    var wrap=document.getElementById('scrWrap');if(!wrap)return;
     var vw=window.innerWidth,vh=window.innerHeight;
-    var scaleX=vw/330,scaleY=vh/586;
-    var scale=Math.min(scaleX,scaleY);
-    scr.style.transform='scale('+scale+')';
-    scr.style.marginTop=((vh-586*scale)/2)+'px';
+    var scale=Math.min(vw/330,vh/586);
+    wrap.style.transform='scale('+scale+')';
+    wrap.style.marginTop=((vh-586*scale)/2)+'px';
   }
-  resize();
-  window.addEventListener('resize',resize);
+  resize();window.addEventListener('resize',resize);
   window.addEventListener('orientationchange',function(){setTimeout(resize,200);});
 })();
 </script>
