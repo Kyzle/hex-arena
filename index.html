@@ -73,8 +73,8 @@ html,body{margin:0;padding:0;background:#0d1219;min-height:100%;display:flex;ali
 .card.illus.foe{outline:2px solid #E24B4A;opacity:.45;}
 </style>
 </head>
-<body>
-  <div id="scr" style="position:relative;width:330px;height:586px;background:#151c26;border-radius:16px;overflow:hidden;touch-action:none;box-shadow:0 8px 40px rgba(0,0,0,.5);">
+<body style="margin:0;padding:0;background:#000;width:100vw;height:100vh;overflow:hidden;display:flex;align-items:flex-start;justify-content:center;">
+  <div id="scr" style="position:relative;width:330px;height:586px;background:#151c26;overflow:hidden;touch-action:none;transform-origin:top center;">
     <div id="bgArt" style="position:absolute;inset:0;background-size:100% 100%;background-repeat:no-repeat;"></div>
     <div id="battleScreen" style="position:absolute;inset:0;">
     <div style="position:absolute;top:6px;left:8px;padding:4px 7px;border-radius:8px;background:rgba(12,14,28,.62);font-size:12px;color:#c9c2e8;">Turn <span id="turnN" style="color:#e8edf3;font-weight:500;">1</span></div>
@@ -1288,6 +1288,22 @@ if('serviceWorker' in navigator){
     navigator.serviceWorker.register('sw.js').catch(function(){});
   });
 }
+</script>
+<script>
+(function(){
+  function resize(){
+    var scr=document.getElementById('scr');
+    if(!scr)return;
+    var vw=window.innerWidth,vh=window.innerHeight;
+    var scaleX=vw/330,scaleY=vh/586;
+    var scale=Math.min(scaleX,scaleY);
+    scr.style.transform='scale('+scale+')';
+    scr.style.marginTop=((vh-586*scale)/2)+'px';
+  }
+  resize();
+  window.addEventListener('resize',resize);
+  window.addEventListener('orientationchange',function(){setTimeout(resize,200);});
+})();
 </script>
 </body>
 </html>
