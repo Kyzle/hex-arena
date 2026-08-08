@@ -80,17 +80,22 @@ html,body{margin:0;padding:0;background:#0d1219;min-height:100%;display:flex;ali
   <div id="scrWrap" style="transform-origin:top center;"><div id="scr" style="position:relative;width:330px;height:586px;background:#151c26;overflow:hidden;touch-action:none;">
     <div id="bgArt" style="position:absolute;inset:0;background-size:100% 100%;background-repeat:no-repeat;"></div>
     <div id="battleScreen" style="position:absolute;inset:0;">
-    <div style="position:absolute;top:6px;left:8px;padding:4px 7px;border-radius:8px;background:rgba(12,14,28,.62);font-size:12px;color:#c9c2e8;">Turn <span id="turnN" style="color:#e8edf3;font-weight:500;">1</span></div>
-    <div style="position:absolute;top:28px;left:8px;padding:3px 7px;border-radius:8px;background:rgba(12,14,28,.62);font-size:10px;color:#c9c2e8;">HP <span id="hpT" style="color:#e8edf3;"></span><div style="width:90px;height:5px;background:#2c3747;border-radius:3px;margin-top:2px;"><div id="hpB" style="width:100%;height:5px;background:#5DCAA5;border-radius:3px;transition:width .3s;"></div></div></div>
-    <div style="position:absolute;top:58px;left:8px;padding:3px 7px;border-radius:8px;background:rgba(12,14,28,.62);font-size:10px;color:#c9c2e8;">EN <span id="enT" style="color:#e8edf3;"></span><div style="width:90px;height:5px;background:#2c3747;border-radius:3px;margin-top:2px;"><div id="enB" style="width:100%;height:5px;background:#378ADD;border-radius:3px;transition:width .3s;"></div></div></div>
-    <div id="room" style="position:absolute;top:30px;right:8px;font-size:10px;color:#B6D66A;text-align:right;"></div>
-    <div id="hint" style="position:absolute;top:6px;right:8px;padding:4px 7px;border-radius:8px;background:rgba(12,14,28,.62);font-size:11px;color:#7d8b9c;max-width:170px;text-align:right;"></div>
+    <div style="position:absolute;top:5px;left:7px;padding:3px 6px;border-radius:7px;background:rgba(12,14,28,.7);font-size:10px;color:#c9c2e8;">T<span id="turnN" style="color:#e8edf3;font-weight:700;">1</span></div>
+    
+    
+    <div id="room" style="position:absolute;top:30px;right:7px;font-size:9px;color:#B6D66A;text-align:right;"></div>
+    <div id="hint" style="position:absolute;top:5px;right:7px;padding:3px 6px;border-radius:7px;background:rgba(12,14,28,.7);font-size:9.5px;color:#a8b4c4;max-width:132px;text-align:right;line-height:1.25;"></div>
     <div id="vig"></div>
     <div id="flashOverlay"></div>
-    <div id="turnOrder" style="position:absolute;left:0;right:0;top:88px;display:flex;justify-content:center;gap:3px;pointer-events:none;z-index:3;"></div>
+    <div id="turnOrder" style="position:absolute;left:0;right:0;top:372px;display:flex;justify-content:center;gap:3px;pointer-events:none;z-index:3;"></div>
     <svg id="arena" viewBox="0 0 330 413" style="position:absolute;top:0;left:0;width:330px;height:413px;"></svg>
     <div id="wheel" style="position:absolute;left:166px;top:413px;width:164px;height:164px;border-radius:50%;">
-      <svg width="164" height="164" style="display:block;pointer-events:none;"><g id="wsec"></g><circle cx="82" cy="82" r="9" fill="rgba(70,80,105,.9)"/></svg>
+      <svg width="164" height="164" style="display:block;pointer-events:none;">
+        <g id="wsec"></g>
+        <circle cx="82" cy="82" r="17" fill="rgba(10,14,26,.92)" stroke="#3f4c63" stroke-width="1.5"/>
+        <text id="enHub" x="82" y="80" text-anchor="middle" font-size="15" font-weight="700" fill="#8CD3F5">20</text>
+        <text x="82" y="90" text-anchor="middle" font-size="6" font-weight="600" fill="#5f7488">ENERGY</text>
+      </svg>
     </div>
     <div class="wItem" id="wi0"></div><div class="wItem" id="wi1"></div><div class="wItem" id="wi2"></div><div class="wItem" id="wi3"></div><div class="wItem" id="wi4"></div>
     <div id="unitBar" style="position:absolute;left:16px;top:420px;width:120px;display:flex;gap:4px;"></div>
@@ -837,6 +842,7 @@ function onCharTap(ch){if(over||drafting||ch.dead||!P)return;
  if(rMode==='shield'&&isMine(ch)){rTarget===ch?confirmReact():(rTarget=ch,render());}
  if(rMode==='counter'&&!isMine(ch)){rTarget===ch?confirmReact():(rTarget=ch,render());}}
 // ---------- render ----------
+let aimTargets=[];
 function render(){if(drafting||!P)return;
  tiles.forEach(t=>t.el.setAttribute('class','hexT'+(phase==='react'?' dm':'')));
  zoneTiles.forEach(t=>t.el.setAttribute('class','hexT '+(occ(t)?'zoneH':'zone')));
@@ -848,7 +854,10 @@ function render(){if(drafting||!P)return;
     if(d<=P.kit.walk)t.el.setAttribute('class','hexT walk');
     else if(mode==='dash'&&P.en>=C_DASH)t.el.setAttribute('class','hexT dash');});}
   if(armed){const o=originT(),cls=armed==='wall'?'hexT wallP':(armed==='pull'||armed==='vortex')?'hexT pullT':'hexT atk';
-   template({q:o.q,r:o.r},armed,P.facing,P.kit.range).forEach(t=>t.el.setAttribute('class',cls));}
+   const tpl=template({q:o.q,r:o.r},armed,P.facing,P.kit.range);
+   tpl.forEach(t=>t.el.setAttribute('class',cls));
+   aimTargets=tpl.map(t=>occ(t)).filter(Boolean);}
+  else aimTargets=[];
  }else if(phase==='react'){
   threat.forEach(t=>t.el.setAttribute('class','hexT eatk'));
   if(rMode==='dodge')tiles.forEach(t=>{if(dist(t,P.pos)===1&&!blocked(t))t.el.setAttribute('class','hexT walk'+(threat.indexOf(t)>-1?' eatk':''));});
@@ -873,7 +882,10 @@ function render(){if(drafting||!P)return;
   u.eBg.setAttribute('x',t.x-bw/2);u.eBg.setAttribute('y',y0+5);
   u.eFg.setAttribute('x',t.x-bw/2);u.eFg.setAttribute('y',y0+5);u.eFg.setAttribute('width',Math.max(0,bw*u.en/EN));
   u.lbl.setAttribute('x',t.x);u.lbl.setAttribute('y',t.y+S*0.62+9);
-  u.lbl.textContent=u.kit.nm+'  '+Math.max(0,u.hp)+'/'+u.kit.hp;});
+  // name only; HP numbers appear just for the acting unit and its target
+  const showHp=(u===P)||(armed&&aimTargets.indexOf(u)>-1);
+  u.lbl.textContent=showHp?(u.kit.nm+' '+Math.max(0,u.hp)+'/'+u.kit.hp):u.kit.nm;
+  u.lbl.setAttribute('opacity',showHp?'1':'0.7');});
  if(!ghostFading){
   if(previewing()){const t=ctile(P);ghost.innerHTML=P.el.innerHTML;ghost.style.transition='none';
    ghost.style.transform='translate('+t.x+'px,'+t.y+'px)'+(hasArt(P)?'':' rotate('+dirAng[P.facing]+'deg)');ghost.style.opacity='0.35';}
@@ -887,8 +899,10 @@ function render(){if(drafting||!P)return;
  if(shielded&&!shielded.dead){const t=ctile(shielded);shR.setAttribute('r',S*0.75);shR.setAttribute('cx',t.x);shR.setAttribute('cy',t.y);}
  document.getElementById('swT').style.display=(phase==='react'&&(rMode==='shield'||rMode==='counter'))?'':'none';
  document.getElementById('turnN').textContent=turn;
- document.getElementById('hpT').textContent=P.hp+'/'+P.kit.hp;document.getElementById('hpB').style.width=(100*P.hp/P.kit.hp)+'%';
- document.getElementById('enT').textContent=P.en+'/'+EN;document.getElementById('enB').style.width=(100*P.en/EN)+'%';
+ // energy reads from the wheel hub; low energy turns it amber, empty turns it red
+ const hub=document.getElementById('enHub');
+ if(hub&&P){hub.textContent=P.en;
+  hub.setAttribute('fill',P.en<C_ATK?'#E24B4A':(P.en<C_ATK*2?'#F0C070':'#8CD3F5'));}
  document.getElementById('room').textContent=gameMode==='dungeon'?(roomGoal+((typeof EXP!=='undefined'&&EXP&&EXP.carriedGold)?(' — '+EXP.carriedGold+'g'):'')):(gameMode==='ffa'?(live().filter(u=>u.team!==0).length+' rivals left'):'');
  const ub=document.getElementById('unitBar');
  if(cfg.control>1&&(phase==='turn'||phase==='enemy')){
@@ -965,14 +979,14 @@ function renderTurnOrder(){
  const rest=remaining();
  if(!rest.length){el.innerHTML='';return;}
  let html='';
- rest.slice(0,7).forEach((u,i)=>{
+ rest.slice(0,6).forEach((u,i)=>{
   const isNow=(i===0);
   const c=(u.kit&&u.kit.col)?u.kit.col:TEAM_COL[u.team];
   const mine=isMine(u);
-  html+='<div style="min-width:24px;max-width:50px;padding:2px 4px;border-radius:6px;'
-   +'background:'+(isNow?'rgba(93,202,165,.94)':'rgba(12,14,28,.74)')+';'
-   +'border:1px solid '+(isNow?'#9ff0d4':(mine?'#5DCAA5':c[0]))+';'
-   +'font-size:7.5px;font-weight:700;color:'+(isNow?'#04342C':(mine?'#9FE1CB':'#e0b8b8'))+';'
+  html+='<div style="min-width:20px;max-width:44px;padding:1px 4px;border-radius:5px;'
+   +'background:'+(isNow?'rgba(93,202,165,.95)':'rgba(10,12,22,.82)')+';'
+   +'border:1px solid '+(isNow?'#9ff0d4':(mine?'rgba(93,202,165,.5)':'rgba(224,140,140,.45)'))+';'
+   +'font-size:7px;font-weight:700;color:'+(isNow?'#04342C':(mine?'#9FE1CB':'#e8b0b0'))+';'
    +'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;">'
    +u.kit.nm+'</div>';});
  el.innerHTML=html;}
@@ -1087,6 +1101,7 @@ function advanceTurn(){
  const u=rem[0];
  if(isPlayerUnit(u)){
   phase='turn';P=u;ctrlIdx=0;mode='walk';setItems();render();return;}
+ u.acted=true;                     // consume this unit's turn up front
  phase='enemy';setItems();render();
  setTimeout(()=>{
   if(over||u.dead){advanceTurn();return;}
