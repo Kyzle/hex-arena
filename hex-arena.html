@@ -70,6 +70,7 @@ html,body{margin:0;padding:0;background:#0d1219;min-height:100%;display:flex;ali
 .card.illus.you{outline:2px solid #5DCAA5;}
 .card.illus.foe{outline:2px solid #E24B4A;opacity:.45;}
 </style>
+<script>window.BUILD_ID="202608081252";</script>
 </head>
 <body style="margin:0;padding:0;background:#000;width:100vw;height:100vh;overflow:hidden;display:flex;align-items:flex-start;justify-content:center;">
   <div id="scrWrap" style="transform-origin:top center;"><div id="scr" style="position:relative;width:330px;height:586px;background:#151c26;overflow:hidden;touch-action:none;">
@@ -1653,6 +1654,10 @@ function showSettings(){
   d.addEventListener('pointerdown',()=>{onToggle();showSettings();});
   rows.appendChild(d);};
  mk('Sound',SND.enabled,()=>{SND.enabled=!SND.enabled;});
+ const stamp=document.createElement('div');
+ stamp.style.cssText='text-align:center;font-size:10px;color:#8d99a8;margin-top:6px;';
+ stamp.textContent='Build '+(window.BUILD_ID||'unknown');
+ rows.appendChild(stamp);
  const reset=document.createElement('div');
  reset.style.cssText='text-align:center;font-size:11px;color:#E24B4A;margin-top:18px;cursor:pointer;';
  reset.textContent='Reset save';
