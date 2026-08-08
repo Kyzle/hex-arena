@@ -1,6 +1,6 @@
 // Service worker: cache-first so the game opens instantly and works offline.
 // CACHE name carries the build stamp — a new build invalidates the old cache.
-const CACHE='hexarena-202608081312';
+const CACHE='hexarena-202608081854';
 const ASSETS=['./','./index.html','./manifest.webmanifest','./icon-192.png','./icon-512.png','./apple-touch-icon.png'];
 self.addEventListener('install',e=>{
   e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)).then(()=>self.skipWaiting()));
