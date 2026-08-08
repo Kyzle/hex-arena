@@ -51,7 +51,10 @@ html,body{margin:0;padding:0;background:#0d1219;min-height:100%;display:flex;ali
 @keyframes windSpin{0%{transform:rotate(0deg) scale(1.25);opacity:0}25%{opacity:.95}100%{transform:rotate(300deg) scale(.35);opacity:0}}
 @keyframes slabRise{0%{opacity:0;transform:translateY(14px) scaleY(.3)}60%{opacity:1;transform:translateY(-2px) scaleY(1.05)}100%{opacity:1;transform:translateY(0) scaleY(1)}}
 @keyframes emberTrail{to{opacity:0;transform:scale(.3)}}
-.wItem{position:absolute;transform:translate(-50%,-50%);color:#8d99a8;font-size:11px;text-align:center;user-select:none;-webkit-user-select:none;line-height:1.15;pointer-events:none}
+.wItem{position:absolute;transform:translate(-50%,-50%);color:#8d99a8;font-size:11px;text-align:center;user-select:none;-webkit-user-select:none;line-height:1.1;pointer-events:none;width:62px}
+.wItem .wName{font-size:11px;font-weight:600;}
+.wItem .wCost{font-size:8px;opacity:.8;margin-top:1px;}
+.wItem .wWhy{font-size:7.5px;color:#E24B4A;margin-top:1px;line-height:1.05;}
 .wItem.sel{font-size:12px;font-weight:600}
 .card{display:inline-block;vertical-align:top;width:48.5%;margin:0 0 6px 0;background:#1b2431;border:1.5px solid #2c3747;border-radius:10px;box-sizing:border-box;padding:8px 4px;text-align:center;cursor:pointer;}
 
@@ -84,6 +87,7 @@ html,body{margin:0;padding:0;background:#0d1219;min-height:100%;display:flex;ali
     <div id="hint" style="position:absolute;top:6px;right:8px;padding:4px 7px;border-radius:8px;background:rgba(12,14,28,.62);font-size:11px;color:#7d8b9c;max-width:170px;text-align:right;"></div>
     <div id="vig"></div>
     <div id="flashOverlay"></div>
+    <div id="turnOrder" style="position:absolute;left:0;right:0;top:88px;display:flex;justify-content:center;gap:3px;pointer-events:none;z-index:3;"></div>
     <svg id="arena" viewBox="0 0 330 413" style="position:absolute;top:0;left:0;width:330px;height:413px;"></svg>
     <div id="wheel" style="position:absolute;left:166px;top:413px;width:164px;height:164px;border-radius:50%;">
       <svg width="164" height="164" style="display:block;pointer-events:none;"><g id="wsec"></g><circle cx="82" cy="82" r="9" fill="rgba(70,80,105,.9)"/></svg>
@@ -91,6 +95,7 @@ html,body{margin:0;padding:0;background:#0d1219;min-height:100%;display:flex;ali
     <div class="wItem" id="wi0"></div><div class="wItem" id="wi1"></div><div class="wItem" id="wi2"></div><div class="wItem" id="wi3"></div><div class="wItem" id="wi4"></div>
     <div id="unitBar" style="position:absolute;left:16px;top:420px;width:120px;display:flex;gap:4px;"></div>
     <div id="unitTag" style="position:absolute;left:12px;top:446px;width:128px;font-size:9px;color:#b9a7e6;text-align:center;"></div>
+    <button id="undoBtn" style="position:absolute;left:16px;top:458px;width:120px;height:24px;background:rgba(80,45,45,.9);color:#f0c0c0;border:1px solid #a05a5a;border-radius:8px;font-size:11px;font-weight:600;cursor:pointer;display:none;">UNDO MOVE</button>
     <button id="swT" style="position:absolute;left:16px;top:458px;width:120px;height:24px;background:rgba(60,50,100,.85);color:#cfd6e0;border:1px solid #6c5ba8;border-radius:8px;font-size:11px;cursor:pointer;display:none;">&#8635; Switch target</button>
     <button id="go" style="position:absolute;left:18px;top:486px;width:116px;height:48px;background:linear-gradient(#7ee2bd,#43b48f);color:#04342C;border:1px solid #9ff0d4;border-radius:12px;font-size:16px;font-weight:700;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.5);">Confirm</button>
     </div>
@@ -362,18 +367,18 @@ const SND=(function(){
 })();
 
 const ROSTER=[
- {id:'vanguard',nm:'Vanguard',hp:50,dmg:7,walk:2,dash:3,range:3,shapes:['attack','arc'],art:'vanguard',card:'vanguard',tr:'Tough frontliner'},
- {id:'lancer',nm:'Lancer',hp:34,dmg:9,walk:2,dash:4,range:4,shapes:['attack'],card:'bramblehand',tr:'Extra reach'},
- {id:'reaper',nm:'Mel',hp:36,dmg:8,walk:3,dash:4,range:2,backX:1.6,shapes:['attack','cone'],art:'reaper',card:'mel',tr:'Backstabs +60%'},
- {id:'warden',nm:'Warden',hp:44,dmg:7,walk:2,dash:3,range:3,rc:4,shapes:['attack','arc'],art:'warden',card:'warden',tr:'Reactions cost 4'},
- {id:'ram',nm:'Ram',hp:42,dmg:7,walk:2,dash:3,range:2,push:1,shapes:['attack','cone'],card:'stonehorn',tr:'Pushes foes away'},
- {id:'bob',nm:'B.O.B.',hp:42,dmg:7,walk:2,dash:3,range:2,shapes:['attack','cone'],art:'bob',card:'bob',tr:'Steady bruiser'},
- {id:'striker',nm:'Striker',hp:32,dmg:11,walk:2,dash:5,range:3,shapes:['attack','cone'],card:'hexfan',tr:'Glass cannon'},
- {id:'sentinel',nm:'Sentinel',hp:46,dmg:6,walk:2,dash:3,range:3,rc:5,shapes:['attack','arc'],card:'hexsage',tr:'Cheap reactions'},
- {id:'ghost',nm:'Ghost',hp:30,dmg:9,walk:3,dash:5,range:2,backX:1.5,shapes:['attack','arc'],card:'goblin',tr:'Fast flanker'},
- {id:'mason',nm:'Mason',hp:44,dmg:6,walk:2,dash:3,range:3,shapes:['attack','wall'],card:'crystal',tr:'Raises barriers'},
- {id:'harbinger',nm:'Harbinger',hp:36,dmg:7,walk:2,dash:3,range:4,pull:1,shapes:['attack','pull'],card:'chainsaint',tr:'Drags foes closer'},
- {id:'anchor',nm:'Anchor',hp:40,dmg:6,walk:2,dash:3,range:3,shapes:['attack','vortex','wall'],card:'storm',tr:'Vortex hauls foes in'}];
+ {id:'vanguard',spd:3,nm:'Vanguard',hp:50,dmg:7,walk:2,dash:3,range:3,shapes:['attack','arc'],art:'vanguard',card:'vanguard',tr:'Tough frontliner'},
+ {id:'lancer',spd:5,nm:'Lancer',hp:34,dmg:9,walk:2,dash:4,range:4,shapes:['attack'],card:'bramblehand',tr:'Extra reach'},
+ {id:'reaper',spd:6,nm:'Mel',hp:36,dmg:8,walk:3,dash:4,range:2,backX:1.6,shapes:['attack','cone'],art:'reaper',card:'mel',tr:'Backstabs +60%'},
+ {id:'warden',spd:3,nm:'Warden',hp:44,dmg:7,walk:2,dash:3,range:3,rc:4,shapes:['attack','arc'],art:'warden',card:'warden',tr:'Reactions cost 4'},
+ {id:'ram',spd:2,nm:'Ram',hp:42,dmg:7,walk:2,dash:3,range:2,push:1,shapes:['attack','cone'],card:'stonehorn',tr:'Pushes foes away'},
+ {id:'bob',spd:3,nm:'B.O.B.',hp:42,dmg:7,walk:2,dash:3,range:2,shapes:['attack','cone'],art:'bob',card:'bob',tr:'Steady bruiser'},
+ {id:'striker',spd:7,nm:'Striker',hp:32,dmg:11,walk:2,dash:5,range:3,shapes:['attack','cone'],card:'hexfan',tr:'Glass cannon'},
+ {id:'sentinel',spd:2,nm:'Sentinel',hp:46,dmg:6,walk:2,dash:3,range:3,rc:5,shapes:['attack','arc'],card:'hexsage',tr:'Cheap reactions'},
+ {id:'ghost',spd:8,nm:'Ghost',hp:30,dmg:9,walk:3,dash:5,range:2,backX:1.5,shapes:['attack','arc'],card:'goblin',tr:'Fast flanker'},
+ {id:'mason',spd:3,nm:'Mason',hp:44,dmg:6,walk:2,dash:3,range:3,shapes:['attack','wall'],card:'crystal',tr:'Raises barriers'},
+ {id:'harbinger',spd:4,nm:'Harbinger',hp:36,dmg:7,walk:2,dash:3,range:4,pull:1,shapes:['attack','pull'],card:'chainsaint',tr:'Drags foes closer'},
+ {id:'anchor',spd:3,nm:'Anchor',hp:40,dmg:6,walk:2,dash:3,range:3,shapes:['attack','vortex','wall'],card:'storm',tr:'Vortex hauls foes in'}];
 const TEAM_COL=[['#0F6E56','#9FE1CB'],['#791F1F','#F7C1C1'],['#7A5210','#F4D08A'],['#3C3489','#CECBF6']];
 const MODES={
  skirmish:{R:4,S:18,teams:2,per:3,control:1},
@@ -446,6 +451,8 @@ function faceSprite(u){if(!hasArt(u))return;
 let phase,mode,prevMode,rMode,pending,turn,rTarget,shielded,lastAttacker,queue,threat,armed,pendingHit=null,over=false,ghostFading=false,drafting=true;
 let lastTap={t:0,tile:null},aTap={t:0,tile:null},pTapT=0,pendD=0,engaged=new Set();
 const moving=new Set();
+let reactQueue=[],pullAfter=false;
+let order=[],orderIdx=-1;
 function reportErr(where,e){
  try{
   const msg=(e&&e.message)||String(e);
@@ -742,6 +749,9 @@ function dmg(c,arc,att){const bx=(att&&att.kit&&att.kit.backX)?att.kit.backX:1.3
  if(c.hp<=0){kill(c,att);return;}
  if(att&&att.kit&&att.kit.push)shove(c,nearDir(ctile(att),ctile(c)));}
 function kill(c,slayer){c.dead=true;SND.play('death');
+ (function(){const t=ctile(c);
+  setTimeout(()=>floatAt(t.x,t.y-14,c.kit.nm.toUpperCase()+' DOWN',
+   c.team===0?'#F09595':'#9FE1CB',11),120);})();
  (function(u){const el=u.el,t=ctile(u);
   el.style.transition='transform .55s cubic-bezier(.3,.1,.5,1),opacity .55s ease-in,filter .3s';
   el.style.filter='grayscale(1) brightness(1.4)';
@@ -862,7 +872,8 @@ function render(){if(drafting||!P)return;
   u.bFg.setAttribute('fill',u.team===0?'#9FE1CB':TEAM_COL[u.team][1]);
   u.eBg.setAttribute('x',t.x-bw/2);u.eBg.setAttribute('y',y0+5);
   u.eFg.setAttribute('x',t.x-bw/2);u.eFg.setAttribute('y',y0+5);u.eFg.setAttribute('width',Math.max(0,bw*u.en/EN));
-  u.lbl.setAttribute('x',t.x);u.lbl.setAttribute('y',t.y+S*0.62+9);u.lbl.textContent=u.kit.nm;});
+  u.lbl.setAttribute('x',t.x);u.lbl.setAttribute('y',t.y+S*0.62+9);
+  u.lbl.textContent=u.kit.nm+'  '+Math.max(0,u.hp)+'/'+u.kit.hp;});
  if(!ghostFading){
   if(previewing()){const t=ctile(P);ghost.innerHTML=P.el.innerHTML;ghost.style.transition='none';
    ghost.style.transform='translate('+t.x+'px,'+t.y+'px)'+(hasArt(P)?'':' rotate('+dirAng[P.facing]+'deg)');ghost.style.opacity='0.35';}
@@ -880,26 +891,36 @@ function render(){if(drafting||!P)return;
  document.getElementById('enT').textContent=P.en+'/'+EN;document.getElementById('enB').style.width=(100*P.en/EN)+'%';
  document.getElementById('room').textContent=gameMode==='dungeon'?(roomGoal+((typeof EXP!=='undefined'&&EXP&&EXP.carriedGold)?(' — '+EXP.carriedGold+'g'):'')):(gameMode==='ffa'?(live().filter(u=>u.team!==0).length+' rivals left'):'');
  const ub=document.getElementById('unitBar');
- if(cfg.control>1&&phase==='turn'){
+ if(cfg.control>1&&(phase==='turn'||phase==='enemy')){
   const list=myRoster();
   if(ub.childElementCount!==list.length){ub.innerHTML='';
-   list.forEach((u,i)=>{const b=document.createElement('div');b.dataset.i=i;
-    b.style.cssText='flex:1;height:26px;border-radius:7px;font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;cursor:pointer;overflow:hidden;';
-    b.addEventListener('pointerdown',e=>{e.stopPropagation();switchTo(myRoster()[i]);});
+   list.forEach((_,i)=>{const b=document.createElement('div');b.dataset.i=i;
+    b.style.cssText='flex:1;height:26px;border-radius:7px;font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;overflow:hidden;';
+    b.addEventListener('pointerdown',e=>{e.stopPropagation();
+     const arr=myRoster();switchTo(arr[parseInt(b.dataset.i)]);});
     ub.appendChild(b);});}
+  const blk=(typeof playerBlock==='function'&&phase==='turn')?playerBlock():[];
   Array.from(ub.children).forEach((b,i)=>{const u=list[i];if(!u)return;
-   const cur=u===P;
-   b.style.background=cur?'#1d4a3b':(u.acted?'#232a35':'#2c3747');
-   b.style.color=cur?'#5DCAA5':(u.acted?'#59636f':'#cfd6e0');
-   b.style.border=cur?'1.5px solid #5DCAA5':'1.5px solid transparent';
-   b.textContent=(u.acted&&!cur?'✓ ':'')+u.kit.nm;});
+   const cur=(u===P&&phase==='turn');
+   const canSwap=blk.indexOf(u)>-1&&!cur;
+   b.style.background=cur?'#1d4a3b':(u.acted?'#232a35':(canSwap?'#2c3747':'#232a35'));
+   b.style.color=cur?'#5DCAA5':(u.acted?'#59636f':(canSwap?'#cfd6e0':'#6b7686'));
+   b.style.border=cur?'1.5px solid #5DCAA5':(canSwap?'1.5px solid #445167':'1.5px solid transparent');
+   b.style.cursor=canSwap?'pointer':'default';
+   b.textContent=(u.acted&&!cur?'\u2713 ':'')+u.kit.nm+'  '+((u.kit.spd||3)+(u.spdMod||0));});
   ub.style.display='flex';
  } else ub.style.display='none';
- document.getElementById('unitTag').textContent=cfg.control>1&&phase==='turn'?(P.acted?'already acted — tap the other unit':'tap a unit above to switch'):'';
+ const blkN=(typeof playerBlock==='function'&&phase==='turn')?playerBlock().length:0;
+ document.getElementById('unitTag').textContent=
+   (phase==='turn'&&P)?(P.kit.nm+(blkN>1?' — tap above to reorder':' acts'))
+   :(phase==='enemy'?'enemy turn':'');
  const h={walk:'Tap a blue tile',dash:'Dash tiles cost 2 en',attack:'Aim, double-tap to fire',cone:'Cone: aim, double-tap',arc:'Arc: aim, double-tap',pull:'Pull: drags foe closer',wall:'Barrier: aim, double-tap',vortex:'Vortex: hauls foes in',face:'Tap to face, confirm ends turn',faceEnd:'Set facing, then confirm'};
  const hr={dodge:'Double-tap a tile ('+RC()+' en)',shield:'Tap target or confirm ('+RC()+' en)',counter:'Tap foe or confirm ('+RC()+' en)',none:'Confirm to skip'};
  document.getElementById('hint').textContent=phase==='enemy'?'Rivals moving':phase==='turn'?h[mode]:hr[rMode];
  goLabel();
+ try{renderTurnOrder();}catch(e){}
+ const undoEl=document.getElementById('undoBtn');
+ if(undoEl)undoEl.style.display=(phase==='turn'&&pending&&mode!=='faceEnd')?'block':'none';
 }
 function perform(actor,shape,ts,cb){
  if(!ts||!ts.length){setTimeout(cb,120);return;}
@@ -937,6 +958,25 @@ function pulse(ts,cb,col){
 // order the template so the sweep travels outward from the actor
 function ordered(actor,ts){const o=ctile(actor);
  return ts.slice().sort((a,b)=>(Math.hypot(a.x-o.x,a.y-o.y))-(Math.hypot(b.x-o.x,b.y-o.y)));}
+// ---- turn order strip: who acts next this round ----
+function renderTurnOrder(){
+ const el=document.getElementById('turnOrder');if(!el)return;
+ if(over||phase==='react'||typeof remaining!=='function'){el.innerHTML='';return;}
+ const rest=remaining();
+ if(!rest.length){el.innerHTML='';return;}
+ let html='';
+ rest.slice(0,7).forEach((u,i)=>{
+  const isNow=(i===0);
+  const c=(u.kit&&u.kit.col)?u.kit.col:TEAM_COL[u.team];
+  const mine=isMine(u);
+  html+='<div style="min-width:24px;max-width:50px;padding:2px 4px;border-radius:6px;'
+   +'background:'+(isNow?'rgba(93,202,165,.94)':'rgba(12,14,28,.74)')+';'
+   +'border:1px solid '+(isNow?'#9ff0d4':(mine?'#5DCAA5':c[0]))+';'
+   +'font-size:7.5px;font-weight:700;color:'+(isNow?'#04342C':(mine?'#9FE1CB':'#e0b8b8'))+';'
+   +'white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;">'
+   +u.kit.nm+'</div>';});
+ el.innerHTML=html;}
+
 // ---------- player turn ----------
 function confirmTurn(){if(over||drafting)return;
  if(phase==='enemy')return;
@@ -968,16 +1008,20 @@ function resolveAction(didDash){
  nextControlled();
 }
 function enterFaceEnd(){if(over)return;armed=null;mode='faceEnd';render();}
-function myRoster(){return myUnits.filter(u=>!u.dead).slice(0,cfg.control);}
+function myRoster(){return myUnits.filter(u=>!u.dead).slice(0,cfg.control)
+ .sort((a,b)=>((b.kit.spd||3)-(a.kit.spd||3))||(a.uid<b.uid?-1:1));}
 function nextControlled(){if(over)return;
  pending=null;pendD=0;armed=null;
  if(P)P.acted=true;
- const next=myRoster().find(u=>!u.acted);
- if(next&&cfg.control>1){P=next;ctrlIdx=myRoster().indexOf(next);mode='walk';setItems();render();return;}
- startAiPhase();}
-function switchTo(u){if(!u||u.acted||u===P||over)return;
+ advanceTurn();}          // initiative decides who is next, not side order
+// Switching is allowed only inside the current run of consecutive player units:
+// their internal order cannot affect the enemy, so the choice is free.
+function switchTo(u){
+ if(!u||over||phase!=='turn'||mode==='faceEnd')return;
+ if(u===P||u.acted)return;
+ if(playerBlock().indexOf(u)<0)return;
  pending=null;pendD=0;armed=null;
- P=u;ctrlIdx=myRoster().indexOf(u);mode='walk';setItems();render();}
+ P=u;mode='walk';setItems();render();}
 function confirmReact(){
  if(rMode==='none'){if(pendingHit)dmg(P,pendingHit.arc,pendingHit.e);endReact();return;}
  if(P.en<RC()){floatAt(ctile(P).x,ctile(P).y,'need '+RC()+' en','#F0997B');return;}
@@ -990,12 +1034,68 @@ function confirmReact(){
   else{shielded=rTarget;if(pendingHit)dmg(P,pendingHit.arc,pendingHit.e);}
   endReact();return;}
  endReact();}
+// ---- undo a pending move (before Confirm) ----
+function undoMove(){
+ if(phase!=='turn'||over||mode==='faceEnd')return;
+ if(!pending)return;
+ pending=null;pendD=0;
+ ghost.style.opacity='0';
+ SND.play('wheel');
+ render();}
+document.getElementById('undoBtn').addEventListener('pointerdown',e=>{e.stopPropagation();undoMove();});
+
 // ---------- AI ----------
-function startAiPhase(){pending=null;armed=null;mode='walk';phase='enemy';engaged=new Set();
- const mine=controlled().slice(0,cfg.control);
- queue=live().filter(u=>mine.indexOf(u)<0);
- queue.forEach(c=>c.en=Math.min(EN,c.en+(gameMode==='dungeon'?E_REGEN:5)));
- setItems();render();setTimeout(nextAi,420);}
+// ---- initiative ----
+function isPlayerUnit(u){return isMine(u)&&controlled().slice(0,cfg.control).indexOf(u)>-1;}
+// effective speed: base + any haste/slow currently on the unit
+function effSpd(u){return (u.kit.spd||3)+(u.spdMod||0);}
+// Everyone still to act this round, fastest first. Recomputed every turn so a
+// haste or slow applied mid-round reorders whoever hasn't gone yet.
+function remaining(){
+ return live().filter(u=>!u.acted)
+   .sort((a,b)=>(effSpd(b)-effSpd(a))||(a.uid<b.uid?-1:1));}
+// The leading run of YOUR units in that order. Their internal order cannot
+// affect the enemy, so you may play them in whatever sequence you like.
+function playerBlock(){
+ const out=[];
+ for(const u of remaining()){ if(isPlayerUnit(u))out.push(u); else break; }
+ return out;}
+function startRound(){
+ if(over)return;
+ turn++;
+ if(turn>TURN_CAP){timeUp();return;}
+ walls.forEach(w=>w.turns--);walls=walls.filter(w=>w.turns>0);zoneTick();
+ const regen=(gameMode==='dungeon'?E_REGEN:5);
+ live().forEach(u=>u.en=Math.min(EN,u.en+regen));
+ UNITS.forEach(u=>u.acted=false);
+ tickSpdMods();
+ engaged=new Set();
+ advanceTurn();}
+// haste/slow durations tick down at the top of each round
+function tickSpdMods(){
+ UNITS.forEach(u=>{
+  if(u.spdTurns>0){u.spdTurns--;if(u.spdTurns<=0){u.spdMod=0;u.spdTurns=0;}}});}
+function applySpdMod(u,amount,turns){
+ u.spdMod=amount;u.spdTurns=turns;
+ floatAt(ctile(u).x,ctile(u).y,amount>0?'HASTE':'SLOW',amount>0?'#8CD3F5':'#C08BE8',11);}
+// Hand the turn to the next unit by current initiative.
+function advanceTurn(){
+ if(over)return;
+ pending=null;pendD=0;armed=null;
+ const rem=remaining();
+ if(!rem.length){startRound();return;}
+ const u=rem[0];
+ if(isPlayerUnit(u)){
+  phase='turn';P=u;ctrlIdx=0;mode='walk';setItems();render();return;}
+ phase='enemy';setItems();render();
+ setTimeout(()=>{
+  if(over||u.dead){advanceTurn();return;}
+  try{aiAct(u);}catch(err){
+   console.error('AI turn failed for',u.kit&&u.kit.nm,err);
+   const h=document.getElementById('hint');if(h)h.textContent='ERR(ai): '+(err&&err.message||err);
+   setTimeout(advanceTurn,120);}
+ },380);}
+function startAiPhase(){advanceTurn();}
 const TURN_CAP=30;
 function teamHp(t){return live().filter(u=>u.team===t).reduce((a,u)=>a+u.hp,0);}
 function timeUp(){
@@ -1003,19 +1103,7 @@ function timeUp(){
  let best=teams[0],bh=-1;
  teams.forEach(t=>{const h=teamHp(t);if(h>bh){bh=h;best=t;}});
  over=true;endGame(best===0?'Time — you led on HP':'Time — rivals led on HP');}
-function nextAi(){if(over)return;const c=queue.shift();
- if(c&&c.dead)return nextAi();
- if(c){try{aiAct(c);}catch(err){
-   console.error('AI turn failed for',c.kit&&c.kit.nm,err);
-   const h=document.getElementById('hint');if(h)h.textContent='ERR(ai): '+(err&&err.message||err);
-   setTimeout(nextAi,120);}
-  return;}
- if(!c){
-  turn++;
-  if(turn>TURN_CAP){timeUp();return;}walls.forEach(w=>w.turns--);walls=walls.filter(w=>w.turns>0);zoneTick();
-  controlled().forEach(u=>u.en=Math.min(EN,u.en+(gameMode==='dungeon'?E_REGEN:5)));
-  phase='turn';myUnits.forEach(u=>u.acted=false);ctrlIdx=0;P=controlled()[0];if(!P){checkWin();return;}mode='walk';setItems();render();return;}
-}
+function nextAi(){if(over)return;advanceTurn();}
 function foesOf(c){return live().filter(f=>f.team!==c.team);}
 function lineTo(pos,foe,rng){for(let d=0;d<6;d++){for(let k=1;k<=(rng||3);k++){const t=tget(pos,d,k);if(!t||isWall(t))break;if(t.q===foe.pos.q&&t.r===foe.pos.r)return{d,k};}}return null;}
 // ---- tactical evaluation ----
@@ -1083,16 +1171,48 @@ function doAiAttack(c,a){c.facing=a.d;c.en-=C_ATK;
  perform(c,shape,tpl,guard('ai-hit',()=>{
   const victims=tpl.map(t=>occ(t)).filter(o=>o&&o.team!==c.team);
   if(shape==='vortex'){victims.forEach(v=>haul(v,c));render();setTimeout(nextAi,360);return;}
-  let reactor=null,rArc=null;
-  victims.forEach(v=>{
-   if(shielded===v){const bt=ctile(v);impactAt(bt,'#5DCAA5');
-    floatAt(bt.x,bt.y,'BLOCKED','#9FE1CB',13);SND.play('block');shielded=null;return;}
+  reactQueue=[];
+  // resolve nearest-first: a shield stops the attack for everyone behind it
+  const from=ctile(c);
+  const ordered=victims.slice().sort((a,b)=>
+    Math.hypot(ctile(a).x-from.x,ctile(a).y-from.y)-Math.hypot(ctile(b).x-from.x,ctile(b).y-from.y));
+  for(let vi=0;vi<ordered.length;vi++){
+   const v=ordered[vi];
+   if(shielded===v){
+    const bt=ctile(v);impactAt(bt,'#5DCAA5');
+    floatAt(bt.x,bt.y,'BLOCKED','#9FE1CB',13);SND.play('block');shielded=null;
+    // everyone further along the line is shielded by them
+    const behind=ordered.length-vi-1;
+    if(behind>0)floatAt(bt.x,bt.y-13,'COVERS '+behind,'#9FE1CB',9);
+    break;}
    const arc=arcOf(nearDir(ctile(v),ctile(c)),v.facing);
    const canReact=isMine(v)&&controlled().slice(0,cfg.control).indexOf(v)>-1;
-   if(canReact&&!reactor&&arc!=='back'&&v.en>=(v.kit.rc||6)){reactor=v;rArc=arc;return;}
-   dmg(v,arc,c);if(!v.dead&&(shape==='pull'||c.kit.pull))haul(v,c);});
-  if(reactor&&!over){savedP=P;P=reactor;lastAttacker=c;threat=tpl;pendingHit={e:c,arc:rArc};startReact();return;}
+   // EVERY eligible unit gets its own reaction — queued, resolved one at a time.
+   // Backstabs remain unreactable; so does being too tired to respond.
+   if(canReact&&arc!=='back'&&v.en>=(v.kit.rc||6)){reactQueue.push({u:v,arc:arc});continue;}
+   dmg(v,arc,c);if(!v.dead&&(shape==='pull'||c.kit.pull))haul(v,c);}
+  if(reactQueue.length&&!over){savedP=P;lastAttacker=c;threat=tpl;pullAfter=(shape==='pull'||c.kit.pull);
+   nextReactor();return;}
   render();setTimeout(nextAi,340);},()=>setTimeout(nextAi,200)));}
+// step through the queued reactors one at a time
+function nextReactor(){
+ if(over){reactQueue=[];return;}
+ // drop any that died or ran dry while earlier reactions resolved
+ while(reactQueue.length){
+  const nx=reactQueue[0];
+  if(nx.u.dead||nx.u.en<(nx.u.kit.rc||6)){
+   const g=reactQueue.shift();
+   if(!g.u.dead)dmg(g.u,g.arc,lastAttacker);
+   continue;}
+  break;}
+ if(!reactQueue.length){finishReactions();return;}
+ const nx=reactQueue[0];
+ P=nx.u;pendingHit={e:lastAttacker,arc:nx.arc};
+ startReact();}
+function finishReactions(){
+ if(savedP&&!savedP.dead)P=savedP;savedP=null;
+ threat=[];pendingHit=null;lastAttacker=null;
+ if(over)return;phase='enemy';setItems();render();setTimeout(advanceTurn,340);}
 function aiAct(c){
  const foes=foesOf(c);
  if(!foes.length){setTimeout(nextAi,150);return;}
@@ -1147,10 +1267,14 @@ function aiAct(c){
   stepAlong(c,route,guard('ai-move',()=>{checkCache(c);finish();},()=>setTimeout(nextAi,200)));
   return;}
  guard('ai-act',finish,()=>setTimeout(nextAi,200))();}
-function startReact(){phase='react';pending=null;rMode='dodge';rTarget=null;setItems();render();}
-function endReact(){pending=null;rTarget=null;threat=[];pendingHit=null;
- if(savedP&&!savedP.dead)P=savedP;savedP=null;
- if(over)return;phase='enemy';setItems();render();setTimeout(nextAi,350);}
+function startReact(){phase='react';pending=null;rMode='dodge';rTarget=null;setItems();render();
+ const h=document.getElementById('hint');
+ if(h&&P){const left=reactQueue.length-1;
+  h.textContent=P.kit.nm+' reacts'+(left>0?(' — '+left+' more'):'');}}
+function endReact(){pending=null;rTarget=null;pendingHit=null;
+ if(reactQueue.length)reactQueue.shift();          // this unit has now responded
+ if(reactQueue.length&&!over){setTimeout(nextReactor,260);return;}
+ finishReactions();}
 // ---------- wheel ----------
 const C_BLUE='#4DA3F0',C_YEL='#F2B33D',C_ORG='#F0935A';
 function fig(i){return '<svg width="19" height="19" viewBox="0 0 24 24" style="display:block;margin:0 auto 1px;">'+i+'</svg>';}
@@ -1166,11 +1290,25 @@ function icoShield(c){return fig('<path d="M12 3l7 3v5.5c0 4.5-3.2 7-7 9.5-3.8-2
 function icoX(c){return fig('<path d="M6.5 6.5 L17.5 17.5 M17.5 6.5 L6.5 17.5" stroke="'+c+'" stroke-width="2.6" stroke-linecap="round"/>');}
 const SHAPE_META={attack:{lb:'Attack',ico:icoLine},cone:{lb:'Cone',ico:icoCone},arc:{lb:'Arc',ico:icoArc},
  wall:{lb:'Barrier',ico:icoWall,col:'#9aa4b5'},pull:{lb:'Pull',ico:icoPull,col:'#A98BE8'},vortex:{lb:'Vortex',ico:icoVortex,col:'#A98BE8'}};
-function buildTurnItems(){const b=[{id:'walk',lb:'Walk',col:C_BLUE,ico:icoWalk},{id:'dash',lb:'Dash',col:C_YEL,ico:icoRun}];
- (P&&P.kit?P.kit.shapes:['attack']).forEach(sh=>b.push({id:sh,lb:SHAPE_META[sh].lb,col:SHAPE_META[sh].col||C_ORG,ico:SHAPE_META[sh].ico}));
+function buildTurnItems(){
+ const en=P?P.en:0;
+ const b=[{id:'walk',lb:'Walk',col:C_BLUE,ico:icoWalk,cost:0},
+          {id:'dash',lb:'Dash',col:C_YEL,ico:icoRun,cost:C_DASH}];
+ (P&&P.kit?P.kit.shapes:['attack']).forEach(sh=>b.push(
+   {id:sh,lb:SHAPE_META[sh].lb,col:SHAPE_META[sh].col||C_ORG,ico:SHAPE_META[sh].ico,cost:C_ATK}));
+ b.forEach(it=>{
+  it.afford=(it.cost||0)<=en;
+  if(!it.afford)it.why='Not enough energy';
+  else if(it.used)it.why='Action used';
+ });
  return b;}
-const reactItems=[{id:'dodge',lb:'Dodge',col:C_BLUE,ico:icoRun},{id:'counter',lb:'Counter',col:C_ORG,ico:icoLine},
- {id:'shield',lb:'Shield',col:'#5DCAA5',ico:icoShield},{id:'none',lb:'No react',col:'#8d99a8',ico:icoX}];
+function buildReactItems(){
+ const c=P?RC():6,en=P?P.en:0,ok=en>=c;
+ const why=ok?null:'Not enough energy';
+ return [{id:'dodge',lb:'Dodge',col:C_BLUE,ico:icoRun,cost:c,afford:ok,why:why},
+  {id:'counter',lb:'Counter',col:C_ORG,ico:icoLine,cost:c,afford:ok,why:why},
+  {id:'shield',lb:'Shield',col:'#5DCAA5',ico:icoShield,cost:c,afford:ok,why:why},
+  {id:'none',lb:'No react',col:'#8d99a8',ico:icoX,cost:0,afford:true}];}
 const WCX=248,WCY=495,RD=50,SEL=-90,FILLS=['#232e3d','#2b3849','#1f2a36','#2e3b4d','#26313f'];
 let items=[],selIdx=0;
 const els=[0,1,2,3,4].map(i=>document.getElementById('wi'+i));
@@ -1179,21 +1317,29 @@ function stepA(){return 360/items.length;}
 function itemAng(i){return SEL+i*stepA();}
 function buildWedges(){const g=document.getElementById('wsec');let s='';const st=stepA();
  for(let i=0;i<items.length;i++){const a1=(itemAng(i)-st/2)*Math.PI/180,a2=(itemAng(i)+st/2)*Math.PI/180,sel=i===selIdx;
-  s+='<path d="M82,82 L'+(82+78*Math.cos(a1)).toFixed(1)+','+(82+78*Math.sin(a1)).toFixed(1)+' A78,78 0 0 1 '+(82+78*Math.cos(a2)).toFixed(1)+','+(82+78*Math.sin(a2)).toFixed(1)+' Z" fill="'+(sel?'#31414f':FILLS[i%FILLS.length])+'" stroke="'+(sel?'#5DCAA5':'#364357')+'" stroke-width="'+(sel?'2.5':'1.5')+'"/>';}
+  const aff=items[i].afford!==false;
+  s+='<path d="M82,82 L'+(82+78*Math.cos(a1)).toFixed(1)+','+(82+78*Math.sin(a1)).toFixed(1)+' A78,78 0 0 1 '+(82+78*Math.cos(a2)).toFixed(1)+','+(82+78*Math.sin(a2)).toFixed(1)+' Z" fill="'+(sel?'#31414f':FILLS[i%FILLS.length])+'" stroke="'+(sel?'#5DCAA5':'#364357')+'" stroke-width="'+(sel?'2.5':'1.5')+'" opacity="'+(aff?1:0.4)+'"/>';}
  g.innerHTML=s;}
 function placeWheel(){els.forEach((el,i)=>{if(i>=items.length){el.style.display='none';return;}el.style.display='';
  const a=itemAng(i),sel=i===selIdx,it=items[i];
  el.style.left=(WCX+Math.cos(a*Math.PI/180)*RD)+'px';el.style.top=(WCY+Math.sin(a*Math.PI/180)*RD)+'px';
- el.className='wItem'+(sel?' sel':'');el.style.color=sel?'#fff':it.col;
- el.innerHTML=it.ico(sel?'#fff':it.col)+it.lb;});}
-function setItems(){items=phase==='react'?reactItems:buildTurnItems();selIdx=0;buildWedges();placeWheel();}
+ const aff=it.afford!==false&&!it.used;
+ el.className='wItem'+(sel?' sel':'');
+ el.style.color=aff?(sel?'#fff':it.col):'#5c6675';
+ el.style.opacity=aff?1:0.8;
+ const cost=(it.cost>0)?('<div class="wCost">'+it.cost+' energy</div>'):'';
+ const why=(!aff&&it.why)?('<div class="wWhy">'+it.why+'</div>'):'';
+ el.innerHTML=it.ico(aff?(sel?'#fff':it.col):'#5c6675')
+   +'<div class="wName">'+it.lb+'</div>'+cost+why;});}
+function setItems(){items=phase==='react'?buildReactItems():buildTurnItems();selIdx=0;buildWedges();placeWheel();}
 function applySel(i){const nm=items[i].id;
  if(phase==='react'){selIdx=i;
   if(nm!==rMode){rMode=nm;pending=null;
    rTarget=nm==='shield'?P:nm==='counter'?(lastAttacker&&!lastAttacker.dead?lastAttacker:foesOf(P)[0]):null;}}
  else if(phase==='turn'&&mode!=='faceEnd'){
   if(nm==='walk'||nm==='dash'){selIdx=i;mode=nm;armed=null;if(pending&&nm==='walk'&&pendD>P.kit.walk){pending=null;pendD=0;}}
-  else{if(P.en<C_ATK){floatAt(ctile(P).x,ctile(P).y,'need 5 en','#F0997B');}else{selIdx=i;mode=nm;armed=nm;}}}
+  else{if(P.en<C_ATK){floatAt(ctile(P).x,ctile(P).y,'Not enough energy','#E24B4A',10);SND.play('block');}
+   else{selIdx=i;mode=nm;armed=nm;}}}
  buildWedges();placeWheel();render();}
 wheel.addEventListener('pointerdown',e=>{if(phase==='enemy'||over||drafting||mode==='faceEnd')return;e.preventDefault();SND.play('wheel');
  const rc=document.getElementById('scr').getBoundingClientRect();
@@ -1216,27 +1362,27 @@ const BESTIARY={
  plains:{
   name:'The Plains',
   commons:[
-   {id:'razorbeak', nm:'Razor Beak',  hp:26,dmg:9, walk:3,dash:5,range:2,backX:1.4,
+   {id:'razorbeak',spd:9, nm:'Razor Beak',  hp:26,dmg:9, walk:3,dash:5,range:2,backX:1.4,
     shapes:['attack'],          col:['#8a5a2b','#e0b070'], tr:'Fast diving striker'},
-   {id:'shieldsheep',nm:'Shield Sheep',hp:50,dmg:5,walk:2,dash:3,range:1,rc:4,
+   {id:'shieldsheep',spd:2,nm:'Shield Sheep',hp:50,dmg:5,walk:2,dash:3,range:1,rc:4,
     shapes:['attack','arc'],    col:['#7d7f88','#dcdfe6'], tr:'Blocks cheaply'},
-   {id:'crowdog',   nm:'Crow Dog',    hp:30,dmg:7, walk:3,dash:4,range:1,backX:1.6,
-    shapes:['attack','cone'],   col:['#3d3a4a','#8d86a8'], tr:'Hunts in packs, flanks'},
-   {id:'wrestlerboa',nm:'Wrestler Boa',hp:38,dmg:7,walk:2,dash:3,range:3,pull:1,
+   {id:'cobradog',spd:7,  nm:'Cobra Dog',   hp:30,dmg:7, walk:3,dash:4,range:2,backX:1.6,
+    shapes:['attack','cone'],   col:['#2f5a48','#7fd6b0'], tr:'Hunts in packs, strikes from behind'},
+   {id:'wrestlerboa',spd:4,nm:'Wrestler Boa',hp:38,dmg:7,walk:2,dash:3,range:3,pull:1,
     shapes:['attack','pull'],   col:['#3f6b3a','#8fd18a'], tr:'Drags prey closer'},
-   {id:'sowbug',    nm:'Sow Bug',     hp:42,dmg:6, walk:2,dash:3,range:1,push:1,
-    shapes:['attack','cone'],   col:['#5a4a3a','#a98f6f'], tr:'Armoured, shoves'}
+   {id:'turtlebug',spd:1, nm:'Turtle Bug',  hp:46,dmg:6, walk:2,dash:3,range:1,push:1,rc:4,
+    shapes:['attack','cone'],   col:['#4a5f3a','#9fc47f'], tr:'Shelled, shoves, hard to hurt'}
   ],
   elites:[
-   {id:'elderboa',  nm:'Elder Boa',   hp:54,dmg:9, walk:2,dash:4,range:4,pull:1,
+   {id:'elderboa',spd:4,  nm:'Elder Boa',   hp:54,dmg:9, walk:2,dash:4,range:4,pull:1,
     shapes:['attack','pull'],   col:['#2f5d3a','#7fd18a'], tr:'Reaches across the field'},
-   {id:'packalpha', nm:'Pack Alpha',  hp:46,dmg:9, walk:3,dash:5,range:2,backX:1.7,
-    shapes:['attack','cone'],   col:['#2b2838','#a08fd0'], tr:'Devastating from behind'}
+   {id:'packalpha',spd:8, nm:'Cobra Alpha',  hp:46,dmg:9, walk:3,dash:5,range:2,backX:1.7,
+    shapes:['attack','cone'],   col:['#1f4a3c','#6fd6a8'], tr:'Devastating from behind'}
   ],
   bosses:[
-   {id:'hivequeen', nm:'Great Hive Queen',hp:78,dmg:8,walk:2,dash:3,range:3,pull:1,
+   {id:'hivequeen',spd:3, nm:'Great Hive Queen',hp:78,dmg:8,walk:2,dash:3,range:3,pull:1,
     shapes:['attack','vortex','arc'], col:['#a8801f','#f2d271'], tr:'Hauls the swarm inward'},
-   {id:'stormbull', nm:'Storm Bull',  hp:88,dmg:11,walk:3,dash:5,range:2,push:1,
+   {id:'stormbull',spd:6, nm:'Storm Bull',  hp:88,dmg:11,walk:3,dash:5,range:2,push:1,
     shapes:['attack','cone'],   col:['#2c4a7a','#7fb4f0'], tr:'Charges and scatters'}
   ]
  }
@@ -1571,10 +1717,13 @@ document.getElementById('vicGo').addEventListener('pointerdown',victoryContinue)
 document.getElementById('defGo').addEventListener('pointerdown',showHome);
 document.getElementById('compGo').addEventListener('pointerdown',showHome);
 function startTurns(){
- phase='turn';mode='walk';prevMode='walk';rMode='dodge';pending=null;pendD=0;turn=1;rTarget=null;shielded=null;
+ phase='turn';mode='walk';prevMode='walk';rMode='dodge';pending=null;pendD=0;turn=0;rTarget=null;shielded=null;
  lastAttacker=null;queue=[];threat=[];armed=null;pendingHit=null;over=false;savedP=null;
- ctrlIdx=0;myUnits.forEach(u=>u.acted=false);P=controlled()[0];
- ROUTER.go('battle');setItems();render();}
+ ctrlIdx=0;UNITS.forEach(u=>u.acted=false);
+ order=[];orderIdx=-1;reactQueue=[];
+ ROUTER.go('battle');
+ P=controlled()[0];setItems();render();
+ startRound();}                    // turn becomes 1 inside startRound
 function initBattle(){
  const sp=SPAWN[cfg.teams];
  let n=0;UNITS.forEach(u=>{u.dead=true;u.el.style.opacity='0';});
